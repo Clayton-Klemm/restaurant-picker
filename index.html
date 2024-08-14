@@ -390,18 +390,18 @@
             const inputElement = document.getElementById(inputId);
             const dropdownOptionsElement = document.getElementById(dropdownId);
 
-            inputElement.addEventListener('click', () => {
+            inputElement.addEventListener('focus', () => {
                 dropdownOptionsElement.style.display = 'block';
                 filterOptions(inputElement, options, dropdownOptionsElement);
             });
 
-            document.addEventListener('click', (e) => {
+            document.addEventListener('focus', (e) => {
                 if (!inputElement.contains(e.target) && !dropdownOptionsElement.contains(e.target)) {
                     dropdownOptionsElement.style.display = 'none';
                 }
             });
 
-            dropdownOptionsElement.addEventListener('click', (e) => {
+            dropdownOptionsElement.addEventListener('focus', (e) => {
                 e.stopPropagation();
             });
 
