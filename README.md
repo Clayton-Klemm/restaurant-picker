@@ -19,12 +19,9 @@
 3. Block any cuisines or specific restaurants you’re not in the mood for.
 4. **Hit that button and boom!** A restaurant suggestion right at your fingertips.
 
-### 👩‍💻 Tech Stack
-- **HTML5 & CSS3**: For a clean and responsive design.
-- **JavaScript**: Adding that extra bit of magic to your selection process.
-
 ### 💡 Why This Project?
 Inspired by the constant "Where do you want to eat?" dilemma, this tool was created to take the stress out of choosing a place to dine. Perfect for locals and visitors to the Fargo-Moorhead area!
 
-### 🎉 Give It a Try!
-Are you ready to make dining decisions a breeze? **Check out the live page and say goodbye to the dinner debate!**
+### 📄 Restaurant List Source
+The restaurant data utilized in this project is sourced directly from the Fargo-Moorhead Visitors Guide, last updated on 14/AUG/2024.
+[Explore the source here](https://www.fargomoorhead.org/visitor-guide/).
