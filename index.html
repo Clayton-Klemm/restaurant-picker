@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Picker</title>
+    <style>
+        /* Basic styling for the page */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        label {
+            margin-bottom: 10px;
+            font-weight: bold;
+            display: block;
+        }
+        .dropdown-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .dropdown-container input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        .dropdown-container .dropdown-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            z-index: 1000;
+            display: none;
+        }
+        .dropdown-container .dropdown-options div {
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .dropdown-container .dropdown-options div:hover {
+            background-color: #f0f0f0;
+        }
+        .dropdown-container .dropdown-options input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .clear-button {
+            width: 100%;
+            padding: 5px;
+            font-size: 14px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        .clear-button:hover {
+            background-color: #e53935;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fargo-Moorhead Restaurant Picker</h1>
+        
+        <label for="restaurantType">Choose a Type:</label>
+        <select id="restaurantType">
+            <option value="">Any</option>
+            <option value="African">African</option>
+            <option value="Chinese">Chinese</option>
+            <option value="Italian">Italian</option>
+            <option value="Mexican">Mexican</option>
+            <option value="Japanese">Japanese</option>
+            <option value="Indian">Indian</option>
+            <option value="French">French</option>
+            <option value="American">American</option>
+        </select>
+        
+        <label for="blockTypes">Block Types:</label>
+        <div class="dropdown-container">
+            <input type="text" id="blockTypesInput" placeholder="Type or select to block" autocomplete="off" readonly>
+            <div class="dropdown-options" id="blockTypesOptions"></div>
+            <button class="clear-button" onclick="clearSelections('blockTypesInput', 'blockTypesOptions')">Clear Selections</button>
+        </div>
+
+        <label for="blockRestaurants">Block Specific Restaurants:</label>
+        <div class="dropdown-container">
+            <input type="text" id="blockRestaurantsInput" placeholder="Type or select to block" autocomplete="off" readonly>
+            <div class="dropdown-options" id="blockRestaurantsOptions"></div>
+            <button class="clear-button" onclick="clearSelections('blockRestaurantsInput', 'blockRestaurantsOptions')">Clear Selections</button>
+        </div>
+        
+        <button onclick="pickRestaurant()">Pick a Restaurant</button>
+        
+        <div id="result"></div>
+    </div>
+    
+    <script>
+        const types = ["African", "Chinese", "Italian", "Mexican", "Japanese", "Indian", "French", "American"];
+        const restaurants = {
+            "Mama Africa": "African",
+            "Dragon Palace": "Chinese",
+            "Pasta Paradise": "Italian",
+            "Taco Loco": "Mexican",
+            "Sushi Zen": "Japanese",
+            "Curry House": "Indian",
+            "Le Petit Bistro": "French",
+            "Burger Haven": "American"
+        };
+
+        function filterOptions(inputElement, options, dropdownOptionsElement) {
+            const filter = inputElement.value.toLowerCase();
+            dropdownOptionsElement.innerHTML = '';
+            options.filter(option => option.toLowerCase().includes(filter)).forEach(option => {
+                const optionDiv = document.createElement('div');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = option;
+                optionDiv.appendChild(checkbox);
+                optionDiv.appendChild(document.createTextNode(option));
+                optionDiv.onclick = (e) => {
+                    e.stopPropagation();
+                    checkbox.checked = !checkbox.checked;
+                    updateSelectedItems(inputElement, dropdownOptionsElement);
+                };
+                dropdownOptionsElement.appendChild(optionDiv);
+            });
+            dropdownOptionsElement.style.display = options.length > 0 ? 'block' : 'none';
+        }
+
+        function updateSelectedItems(inputElement, dropdownOptionsElement) {
+            const selected = [];
+            dropdownOptionsElement.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                selected.push(checkbox.value);
+            });
+            inputElement.value = selected.join(', ');
+        }
+
+        function clearSelections(inputId, dropdownId) {
+            const inputElement = document.getElementById(inputId);
+            const dropdownOptionsElement = document.getElementById(dropdownId);
+
+            dropdownOptionsElement.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            inputElement.value = '';
+        }
+
+        function setupDropdown(inputId, options, dropdownId) {
+            const inputElement = document.getElementById(inputId);
+            const dropdownOptionsElement = document.getElementById(dropdownId);
+
+            inputElement.addEventListener('click', () => {
+                dropdownOptionsElement.style.display = 'block';
+                filterOptions(inputElement, options, dropdownOptionsElement);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!inputElement.contains(e.target) && !dropdownOptionsElement.contains(e.target)) {
+                    dropdownOptionsElement.style.display = 'none';
+                }
+            });
+
+            dropdownOptionsElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            inputElement.addEventListener('input', () => {
+                filterOptions(inputElement, options, dropdownOptionsElement);
+            });
+        }
+
+        setupDropdown('blockTypesInput', types, 'blockTypesOptions');
+        setupDropdown('blockRestaurantsInput', Object.keys(restaurants), 'blockRestaurantsOptions');
+
+        function pickRestaurant() {
+            const restaurantType = document.getElementById('restaurantType').value;
+            const blockTypes = document.getElementById('blockTypesInput').value.split(',').map(type => type.trim());
+            const blockRestaurants = document.getElementById('blockRestaurantsInput').value.split(',').map(name => name.trim());
+
+            const filteredRestaurants = Object.entries(restaurants)
+                .filter(([name, type]) => !blockTypes.includes(type) && !blockRestaurants.includes(name))
+                .filter(([name, type]) => !restaurantType || type === restaurantType);
+
+            if (filteredRestaurants.length === 0) {
+                document.getElementById('result').innerText = 'No restaurants available or they are blocked.';
+                return;
+            }
+
+            const [chosenRestaurant, chosenType] = filteredRestaurants[Math.floor(Math.random() * filteredRestaurants.length)];
+            document.getElementById('result').innerText = `You should go to: ${chosenRestaurant} (${chosenType})`;
+        }
+    </script>
+</body>
+</html>
