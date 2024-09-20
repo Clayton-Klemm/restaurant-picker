@@ -8,22 +8,23 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             background-color: #f0f0f0;
         }
         .container {
-            max-width: 600px;
+            max-width: 100%;
             margin: auto;
             background: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         h1 {
             text-align: center;
+            font-size: 1.5em;
         }
         label {
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             font-weight: bold;
             display: block;
         }
@@ -34,7 +35,7 @@
         }
         .dropdown-container input {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             font-size: 16px;
             border-radius: 5px;
             border: 1px solid #ccc;
@@ -56,14 +57,9 @@
         .dropdown-container .dropdown-options div {
             padding: 10px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
         }
         .dropdown-container .dropdown-options div:hover {
             background-color: #f0f0f0;
-        }
-        .dropdown-container .dropdown-options input[type="checkbox"] {
-            margin-right: 10px;
         }
         .blocked-items {
             margin-top: 10px;
@@ -71,9 +67,20 @@
             background-color: #e0e0e0;
             border-radius: 5px;
         }
+        .blocked-items h3 {
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+        .blocked-items div {
+            padding: 5px;
+            background-color: #d0d0d0;
+            border-radius: 3px;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
         .clear-button {
             width: 100%;
-            padding: 5px;
+            padding: 8px;
             font-size: 14px;
             background-color: #f44336;
             color: white;
@@ -88,7 +95,7 @@
         }
         button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             font-size: 16px;
             background-color: #4CAF50;
             color: white;
@@ -105,6 +112,27 @@
             text-align: center;
             font-size: 20px;
             font-weight: bold;
+        }
+        /* Media queries for mobile responsiveness */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.2em;
+            }
+            label {
+                font-size: 0.9em;
+            }
+            .dropdown-container input {
+                font-size: 14px;
+            }
+            .dropdown-container .dropdown-options div {
+                padding: 8px;
+            }
+            .clear-button, button {
+                font-size: 14px;
+            }
+            #result {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
@@ -358,35 +386,33 @@
             "Tea & Crepe Cafe": "Treats",
             "The Silver Lining Creamery": "Treats",
             "Yeobo Sweet Shop": "Treats",
-};
+        };
 
         function filterOptions(inputElement, options, dropdownOptionsElement) {
             const filter = inputElement.value.toLowerCase();
             dropdownOptionsElement.innerHTML = '';
-            options.filter(option => option.toLowerCase().includes(filter)).forEach(option => {
+            const filteredOptions = options.filter(option => option.toLowerCase().includes(filter));
+            filteredOptions.forEach(option => {
                 const optionDiv = document.createElement('div');
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.value = option;
-                optionDiv.appendChild(checkbox);
-                optionDiv.appendChild(document.createTextNode(option));
-                optionDiv.onclick = (e) => {
-                    e.stopPropagation();
-                    checkbox.checked = !checkbox.checked;
-                    updateSelectedItems(inputElement, dropdownOptionsElement, checkbox.value);
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => {
+                    updateSelectedItems(inputElement, dropdownOptionsElement, option);
                 };
                 dropdownOptionsElement.appendChild(optionDiv);
             });
-            dropdownOptionsElement.style.display = options.length > 0 ? 'block' : 'none';
+            dropdownOptionsElement.style.display = filteredOptions.length > 0 ? 'block' : 'none';
         }
 
         function updateSelectedItems(inputElement, dropdownOptionsElement, value) {
-            const selectedDiv = inputElement.id === 'blockTypesInput' ? 'blockedTypes' : 'blockedRestaurants';
-            const selectedContainer = document.getElementById(selectedDiv);
+            const selectedDivId = inputElement.id === 'blockTypesInput' ? 'blockedTypes' : 'blockedRestaurants';
+            const selectedContainer = document.getElementById(selectedDivId);
             if (!selectedContainer.querySelector(`[data-value="${value}"]`)) {
                 const blockDiv = document.createElement('div');
                 blockDiv.textContent = value;
                 blockDiv.setAttribute('data-value', value);
+                blockDiv.onclick = () => {
+                    selectedContainer.removeChild(blockDiv);
+                };
                 selectedContainer.appendChild(blockDiv);
             }
             inputElement.value = '';
@@ -398,9 +424,6 @@
             const dropdownOptionsElement = document.getElementById(dropdownId);
             const blockedElement = document.getElementById(blockedId);
 
-            dropdownOptionsElement.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                checkbox.checked = false;
-            });
             inputElement.value = '';
             blockedElement.innerHTML = '';
         }
