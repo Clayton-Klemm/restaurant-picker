@@ -23,5 +23,5 @@
 Inspired by the constant "Where do you want to eat?" dilemma, this tool was created to take the stress out of choosing a place to dine. Perfect for locals and visitors to the Fargo-Moorhead area!
 
 ### 📄 Restaurant List Source
-The restaurant data utilized in this project is sourced directly from the Fargo-Moorhead Visitors Guide, last updated on 14/AUG/2024.
+The restaurant data utilized in this project is sourced directly from the Fargo-Moorhead Visitors Guide, last updated on 14/JUN/2026.
 [Explore the source here](https://www.fargomoorhead.org/visitor-guide/).
