@@ -1,472 +1,3516 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restaurant Picker</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 10px;
-            background-color: #f0f0f0;
-        }
-        .container {
-            max-width: 100%;
-            margin: auto;
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            font-size: 1.5em;
-        }
-        label {
-            margin-bottom: 5px;
-            font-weight: bold;
-            display: block;
-        }
-        .dropdown-container {
-            position: relative;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        .dropdown-container input {
-            width: 100%;
-            padding: 8px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-        }
-        .dropdown-container .dropdown-options {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            max-height: 150px;
-            overflow-y: auto;
-            background-color: white;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            z-index: 1000;
-            display: none;
-        }
-        .dropdown-container .dropdown-options div {
-            padding: 10px;
-            cursor: pointer;
-        }
-        .dropdown-container .dropdown-options div:hover {
-            background-color: #f0f0f0;
-        }
-        .blocked-items {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #e0e0e0;
-            border-radius: 5px;
-        }
-        .blocked-items h3 {
-            font-size: 1em;
-            margin-bottom: 5px;
-        }
-        .blocked-items div {
-            padding: 5px;
-            background-color: #d0d0d0;
-            border-radius: 3px;
-            margin-bottom: 5px;
-            cursor: pointer;
-        }
-        .clear-button {
-            width: 100%;
-            padding: 8px;
-            font-size: 14px;
-            background-color: #f44336;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-            cursor: pointer;
-        }
-        .clear-button:hover {
-            background-color: #e53935;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            box-sizing: border-box;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #result {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        /* Media queries for mobile responsiveness */
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 1.2em;
-            }
-            label {
-                font-size: 0.9em;
-            }
-            .dropdown-container input {
-                font-size: 14px;
-            }
-            .dropdown-container .dropdown-options div {
-                padding: 8px;
-            }
-            .clear-button, button {
-                font-size: 14px;
-            }
-            #result {
-                font-size: 18px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fargo-Moorhead Restaurant Picker</title>
+  <style>
+    :root {
+      --bg: #f6f2ea;
+      --paper: #fffaf2;
+      --paper-strong: #ffffff;
+      --text: #25211b;
+      --muted: #6e665b;
+      --line: #e4d8c9;
+      --accent: #d95f3b;
+      --accent-dark: #b94022;
+      --accent-soft: #ffe2d7;
+      --green: #28785f;
+      --green-soft: #dff4ec;
+      --shadow: 0 20px 45px rgba(62, 45, 28, 0.12);
+      --radius-lg: 26px;
+      --radius-md: 16px;
+      --radius-sm: 999px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(217, 95, 59, 0.18), transparent 28rem),
+        linear-gradient(135deg, #fff7ed 0%, var(--bg) 52%, #edf7f1 100%);
+      min-height: 100vh;
+    }
+
+    button, input, select { font: inherit; }
+
+    .shell {
+      width: min(1120px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.5fr 0.8fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+
+    .hero-card, .panel, .result-card {
+      background: rgba(255, 250, 242, 0.88);
+      border: 1px solid rgba(228, 216, 201, 0.9);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-card { padding: 28px; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border-radius: var(--radius-sm);
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      font-weight: 800;
+      font-size: 0.78rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 0.96;
+      letter-spacing: -0.06em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.55;
+      max-width: 62ch;
+      margin: 16px 0 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 18px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,0.72);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.9rem;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 380px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel { padding: 20px; }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .field { margin-bottom: 15px; }
+    .field label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 750;
+      margin-bottom: 7px;
+    }
+
+    .field small { color: #958a7c; font-weight: 600; }
+
+    select, input[type="search"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--paper-strong);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 13px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    select:focus, input[type="search"]:focus {
+      border-color: rgba(217, 95, 59, 0.65);
+      box-shadow: 0 0 0 4px rgba(217, 95, 59, 0.13);
+    }
+
+    .button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .primary, .secondary, .ghost {
+      border: 0;
+      border-radius: 16px;
+      padding: 13px 14px;
+      font-weight: 850;
+      cursor: pointer;
+      transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+    }
+
+    .primary {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 12px 22px rgba(217, 95, 59, 0.24);
+      margin-top: 2px;
+    }
+
+    .primary:hover, .secondary:hover, .ghost:hover { transform: translateY(-1px); }
+    .primary:hover { background: var(--accent-dark); }
+
+    .secondary { background: var(--green-soft); color: var(--green); }
+    .ghost { background: #f0e7dc; color: #655b50; }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #544b41;
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 0.83rem;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .chip[aria-pressed="true"] {
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      border-color: #ffc0ab;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 38px;
+      padding: 8px;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.54);
+    }
+
+    .tag {
+      border: 0;
+      background: #352f28;
+      color: white;
+      border-radius: var(--radius-sm);
+      padding: 7px 10px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .empty-tags { color: #958a7c; font-size: 0.86rem; padding: 7px 2px; }
+
+    .result-wrap { min-height: 580px; }
+
+    .result-card { padding: 24px; overflow: hidden; position: relative; }
+
+    .result-card::before {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -80px;
+      top: -80px;
+      background: radial-gradient(circle, rgba(217, 95, 59, 0.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    .result-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      position: relative;
+      z-index: 1;
+    }
+
+    .category-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: var(--radius-sm);
+      background: var(--green-soft);
+      color: var(--green);
+      padding: 7px 11px;
+      font-weight: 900;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .result-title {
+      margin: 10px 0 6px;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 0.98;
+      letter-spacing: -0.07em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .description {
+      color: var(--muted);
+      font-size: 1.03rem;
+      line-height: 1.55;
+      margin: 12px 0 20px;
+      max-width: 70ch;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-title {
+      margin: 20px 0 10px;
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .locations {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .location {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.82);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .location strong { display: block; margin-bottom: 5px; }
+    .location p { margin: 0; color: var(--muted); line-height: 1.38; }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .links a {
+      color: var(--accent-dark);
+      background: var(--accent-soft);
+      text-decoration: none;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 900;
+    }
+
+    .placeholder {
+      text-align: center;
+      padding: 70px 22px;
+      color: var(--muted);
+    }
+
+    .placeholder .dice { font-size: 4.5rem; margin-bottom: 8px; }
+    .placeholder h2 { color: var(--text); margin: 0 0 8px; font-size: 1.6rem; }
+    .placeholder p { margin: 0 auto; max-width: 52ch; line-height: 1.55; }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .mini-button {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      color: #5d5349;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .list-panel { margin-top: 18px; }
+
+    .browse-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+
+    .browse-header h2 { margin: 0; font-size: 1rem; }
+    .browse-header span { color: var(--muted); font-size: 0.9rem; font-weight: 750; }
+
+    .restaurant-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .mini-card {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+      border-radius: 16px;
+      padding: 12px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.12s ease, border-color 0.12s ease;
+    }
+
+    .mini-card:hover { transform: translateY(-1px); border-color: rgba(217, 95, 59, 0.45); }
+    .mini-card strong { display: block; margin-bottom: 5px; }
+    .mini-card span { color: var(--muted); font-size: 0.83rem; }
+
+    .history { margin-top: 18px; }
+    .history ol { padding-left: 22px; margin: 8px 0 0; color: var(--muted); }
+    .history li { margin: 5px 0; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 860px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .result-wrap { min-height: auto; }
+    }
+
+    @media (max-width: 580px) {
+      .shell { width: min(100% - 18px, 1120px); padding-top: 10px; }
+      .hero-card, .panel, .result-card { border-radius: 20px; }
+      .hero-card, .result-card { padding: 20px; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px; }
+      .button-row { grid-template-columns: 1fr; }
+      .result-title { font-size: 2.4rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Fargo-Moorhead Restaurant Picker</h1>
-        
-        <label for="restaurantType">Choose a Type:</label>
-        <select id="restaurantType">
-            <option value="">Any</option>
-            <option value="African">African</option>
-            <option value="American">American</option>
-            <option value="Asian">Asian</option>
-            <option value="Coffee">Coffee</option>
-            <option value="Delis & Sandwiches">Delis & Sandwiches</option>
-            <option value="Diners">Diners</option>
-            <option value="European">European</option>
-            <option value="Fine Dining">Fine Dining</option>
-            <option value="Italian">Italian</option>
-            <option value="Mediterranean">Mediterranean</option>
-            <option value="Mexican">Mexican</option>
-            <option value="Pizza">Pizza</option>
-            <option value="Sports Bars">Sports Bars</option>
-            <option value="Treats">Treats</option>
-        </select>
-        
-        <label for="blockTypes">Block Types:</label>
-        <div class="dropdown-container">
-            <input type="text" id="blockTypesInput" placeholder="Type or select to block" autocomplete="on">
-            <div class="dropdown-options" id="blockTypesOptions"></div>
-            <button class="clear-button" onclick="clearSelections('blockTypesInput', 'blockTypesOptions', 'blockedTypes')">Clear Selections</button>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">🍽️ Fargo-Moorhead Dining Guide Picker</div>
+        <h1>Let dinner pick itself.</h1>
+        <p class="subtitle">Filter by category or city, block the places you already know you do not want, then roll for one restaurant. Restaurants with multiple locations are only counted once, and all locations show on the result card.</p>
+      </div>
+      <div class="hero-card stats" aria-label="Dining guide stats">
+        <div class="stat"><strong id="restaurantCount">0</strong><span>restaurants</span></div>
+        <div class="stat"><strong id="categoryCount">0</strong><span>categories</span></div>
+        <div class="stat"><strong id="locationCount">0</strong><span>locations</span></div>
+        <div class="stat"><strong id="visibleCount">0</strong><span>currently eligible</span></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <aside class="panel">
+        <h2>Picker controls</h2>
+
+        <div class="field">
+          <label for="categorySelect">Category <small>optional</small></label>
+          <select id="categorySelect"></select>
         </div>
 
-        <label for="blockRestaurants">Block Specific Restaurants:</label>
-        <div class="dropdown-container">
-            <input type="text" id="blockRestaurantsInput" placeholder="Type or select to block" autocomplete="on">
-            <div class="dropdown-options" id="blockRestaurantsOptions"></div>
-            <button class="clear-button" onclick="clearSelections('blockRestaurantsInput', 'blockRestaurantsOptions', 'blockedRestaurants')">Clear Selections</button>
+        <div class="field">
+          <label for="citySelect">City <small>optional</small></label>
+          <select id="citySelect"></select>
         </div>
-        
-        <div class="blocked-items">
-            <h3>Blocked Types:</h3>
-            <div id="blockedTypes"></div>
-            <h3>Blocked Restaurants:</h3>
-            <div id="blockedRestaurants"></div>
+
+        <div class="field">
+          <label for="searchInput">Search restaurants <small>optional</small></label>
+          <input id="searchInput" type="search" placeholder="pizza, sushi, BernBaum’s, etc." autocomplete="off" />
         </div>
-        
-        <button onclick="pickRestaurant()">Pick a Restaurant</button>
-        
-        <div id="result"></div>
-    </div>
-    
-    <script>
-        const types = ['African', 'American', 'Asian', 'Coffee', 'Delis & Sandwiches', 'Diners', 'European', 'Fine Dining', 'Italian', 'Mediterranean', 'Mexican', 'Pizza', 'Sports Bars', 'Treats'];
-        const restaurants = {
-            "Adibon": "African",
-            "Mama African Cusine": "African",
-            "Kings and Queens Jollof House": "African",
-            "Rugsan Cuisine": "African",
-            "The Spice Grille": "African",
-            "46 North Pints & Provisions": "American",
-            "Barcode Bar & Grill": "American",
-            "Baron's Eatery & Bar": "American",
-            "Beer & Fish Company": "American",
-            "Brew Bird": "American",
-            "Brewtus' Brickhouse Tavern": "American",
-            "Burger Time": "American",
-            "Camp Lone Tree": "American",
-            "Chalili's Chicken & Wing": "American",
-            "Cowboy Jack's": "American",
-            "CRAVE American Kitchen & sushi Bar": "American",
-            "Doolittles Woodfire Grill": "American",
-            "Crooked Pint Ale House": "American",
-            "Granite City": "American",
-            "Hen House Bar & Restaurant": "American",
-            "Herd & Horns": "American",
-            "Hi-Ho Burgers & Brews": "American",
-            "Jay's Smokin' BBQ": "American",
-            "JL Beers": "American",
-            "Lucky's 13 Pub": "American",
-            "NoBull Smokehouse": "American",
-            "Luna": "American",
-            "Nova Eatery": "American",
-            "Midtown Tavern": "American",
-            "Old Broadway": "American",
-            "Pounds": "American",
-            "Sickies Garage": "American",
-            "Silver Dollar - Flying Pig Bar & Grill": "American",
-            "Sol Ave. Kitchen": "American",
-            "Spitfire Bar & Grill": "American",
-            "Space Aliens Grill and Bar": "American",
-            "Teddy's Eatery & Parlor": "American",
-            "The Boiler Room": "American",
-            "True North Bistro": "American",
-            "The Tavern Grill": "American",
-            "Urban 42": "American",
-            "The Toasted Frog": "American",
-            "Wicked Willie's Seafood Steam Pots": "American",
-            "Wild Bill's Sports Saloon": "American",
-            "China Buffet": "Asian",
-            "China King": "Asian",
-            "Drunken Noodle": "Asian",
-            "Fortune House Chinese Resturant": "Asian",
-            "Giant Panda": "Asian",
-            "Ginza Ramen & Poke": "Asian",
-            "Great Wall Chinese Restaurant": "Asian",
-            "House of Noods + Buns": "Asian",
-            "Himalayan Yak": "Asian",
-            "India Palace": "Asian",
-            "India Street Food Fargo": "Asian",
-            "Kobe's Japanese Cuisine": "Asian",
-            "Izumi Sushi & Hibachi": "Asian",
-            "LeeLa Thai Cuisine": "Asian",
-            "Jade Dragon": "Asian",
-            "Little Brother": "Asian",
-            "Lucy's North China Cuisine": "Asian",
-            "Mr Wok Chinese Express": "Asian",
-            "Lulu's Deli": "Asian",
-            "Nine Dragons": "Asian",
-            "Momos n' More": "Asian",
-            "Osaka Sushi & Hibachi": "Asian",
-            "Passage to India": "Asian",
-            "Poke Bowl": "Asian",
-            "Peking Restaurant": "Asian",
-            "Royal Buffet": "Asian",
-            "Pho D'licious": "Asian",
-            "Samurai Asian Fusion Cuisine & Sushi Bar": "Asian",
-            "Shang Hai Chinese Restaurant": "Asian",
-            "Snap Dragon": "Asian",
-            "Sirirath Thai House": "Asian",
-            "Soho 23": "Asian",
-            "Slurp Ramen": "Asian",
-            "Sushi Burrito Cafe": "Asian",
-            "Taj India": "Asian",
-            "Thai Orchid": "Asian",
-            "Thai Street Food": "Asian",
-            "ThaiKota": "Asian",
-            "Wasabi Sushi & Asian Grill": "Asian",
-            "Atomic Coffee": "Coffee",
-            "Babb's Coffee House": "Coffee",
-            "Beans Coffee Bar": "Coffee",
-            "Bully Brew Coffee House": "Coffee",
-            "Chai Moto": "Coffee",
-            "Kreps Family Corner Coffee": "Coffee",
-            "Ladybug Lattee": "Coffee",
-            "Moonrise Cafe": "Coffee",
-            "Moxie Java": "Coffee",
-            "Red River Coffee Company": "Coffee",
-            "Steep Me A Cup of Tea": "Coffee",
-            "Teaberry": "Coffee",
-            "Third Drop Coffee & Kitchen": "Coffee",
-            "Thunder Coffee": "Coffee",
-            "Twenty Below Coffee Co.": "Coffee",
-            "Young Blood Coffee Co.": "Coffee",
-            "Boppa's Bagels": "Delis & Sandwiches",
-            "Cracked Pepper": "Delis & Sandwiches",
-            "Grand Junction": "Delis & Sandwiches",
-            "Mehl's Bakery & Deli": "Delis & Sandwiches",
-            "Michele's Table": "Delis & Sandwiches",
-            "Benedict's Morning Heroes": "Diners",
-            "Deaner's Diner": "Diners",
-            "Fry'n Pan": "Diners",
-            "Kroll's Diner": "Diners",
-            "Marge's Diner": "Diners",
-            "Randy's Diner": "Diners",
-            "The Shack on Broadway": "Diners",
-            "BernBaum's": "European",
-            "Blarney Stone Pub": "European",
-            "Sons of Norway": "European",
-            "Three Lyons Pub": "European",
-            "Wurst Bier Hall": "European",
-            "84 Italian Steakhouse": "Fine Dining",
-            "Fargo Cork 'N Cleaver": "Fine Dining",
-            "Mangata Wine & Raw Bar": "Fine Dining",
-            "Maxwells": "Fine Dining",
-            "Mezzaluna": "Fine Dining",
-            "Porter Creek Hardwood Grill": "Fine Dining",
-            "Prairie Kitchen": "Fine Dining",
-            "Rosewild": "Fine Dining",
-            "Rustica Eatery & Tavern": "Fine Dining",
-            "Altony's Italian Cafe": "Italian",
-            "Reese & Riley's Olive Oil & Bistro Bar": "Italian",
-            "Spaghetti Western Italian": "Italian",
-            "Cafe Aladdin": "Mediterranean",
-            "Cairo Restaurant and Bar": "Mediterranean",
-            "GP's Greek Kitchen": "Mediterranean",
-            "Ishtar Mediterranean Cuisine": "Mediterranean",
-            "New Gyro": "Mediterranean",
-            "Newroz Kebab": "Mediterranean",
-            "Tati's Mediterranean Savour": "Mediterranean",
-            "Acapulco Mexican Restaurant": "Mexican",
-            "Azteca Tacos": "Mexican",
-            "Casa Mexico Restaurant": "Mexican",
-            "El Agave Mexican Restaurant": "Mexican",
-            "El Taco Rojo": "Mexican",
-            "El Torero Mexican Restaurant": "Mexican",
-            "La Unica": "Mexican",
-            "Mango's Mexican & American Grill": "Mexican",
-            "Mas Tequila": "Mexican",
-            "Mexican Village": "Mexican",
-            "Paradiso": "Mexican",
-            "Plaza Azteca": "Mexican",
-            "Puerto Vallarta": "Mexican",
-            "Red Pepper": "Mexican",
-            "Taco Shop": "Mexican",
-            "Tacos Trompo": "Mexican",
-            "Blackbird Woodfire": "Pizza",
-            "Deek's Pizza": "Pizza",
-            "Duane's House of Pizza": "Pizza",
-            "Pizza Patrol": "Pizza",
-            "Rhombus Guys": "Pizza",
-            "Sammy's Pizza": "Pizza",
-            "Slap Shot Pizza": "Pizza",
-            "Spicy Pie": "Pizza",
-            "Bar Down Sports Bar & Restaurant": "Sports Bars",
-            "Bison Turf": "Sports Bars",
-            "BorderTown Bar & Grill": "Sports Bars",
-            "Bulldog Tap": "Sports Bars",
-            "Dempsey's Public House": "Sports Bars",
-            "Fargo Billiards & Gastropub": "Sports Bars",
-            "Frank's Lounge": "Sports Bars",
-            "Hooligan's Bar & Grill": "Sports Bars",
-            "Labby's Grill & Bar": "Sports Bars",
-            "Legends Sports Bar & Grill": "Sports Bars",
-            "Mick's Office": "Sports Bars",
-            "Murphy's Pub": "Sports Bars",
-            "O'Clevy's Drinks & Eats": "Sports Bars",
-            "O'Kelly's Tastes & Toddies": "Sports Bars",
-            "Pepper's Sports Cafe": "Sports Bars",
-            "Pub West": "Sports Bars",
-            "Rookies Sports Bar & Grill": "Sports Bars",
-            "Round Up Saloon": "Sports Bars",
-            "Sidestreet Grille & Pub": "Sports Bars",
-            "SouthTown PourHouse": "Sports Bars",
-            "Tailgators Sports Cafe": "Sports Bars",
-            "The Local 701": "Sports Bars",
-            "Vic's Bar & Grill": "Sports Bars",
-            "Woody's Bar & Grill": "Sports Bars",
-            "The Zone Bar": "Sports Bars",
-            "Aloha Fresh Juice Bar": "Treats",
-            "Black Coffee and Waffle Bar": "Treats",
-            "Dairy Queen-The Original Moorhead Dairy Queen": "Treats",
-            "Juice Box": "Treats",
-            "Juice It": "Treats",
-            "Kones Kreamery": "Treats",
-            "Moorhead Freez": "Treats",
-            "Nichole's Fine Pastry & Cafe": "Treats",
-            "Sandy's Donuts": "Treats",
-            "Scoop N Dough Candy Co.": "Treats",
-            "Sweet Dreams Confections": "Treats",
-            "Tea & Crepe Cafe": "Treats",
-            "The Silver Lining Creamery": "Treats",
-            "Yeobo Sweet Shop": "Treats",
+
+        <button class="primary" id="rollButton">Pick a Restaurant</button>
+        <div class="button-row" style="margin-top:10px;">
+          <button class="secondary" id="randomCategoryButton" type="button">Random category</button>
+          <button class="ghost" id="clearFiltersButton" type="button">Clear filters</button>
+        </div>
+
+        <div class="field" style="margin-top:20px;">
+          <label>Block categories <small>tap to toggle</small></label>
+          <div class="chips" id="categoryChips"></div>
+        </div>
+
+        <div class="field">
+          <label for="blockRestaurantInput">Block a restaurant <small>search then add</small></label>
+          <input id="blockRestaurantInput" type="search" placeholder="Type a restaurant name" list="restaurantNames" autocomplete="off" />
+          <datalist id="restaurantNames"></datalist>
+          <div class="button-row" style="margin-top:10px;">
+            <button class="secondary" id="addBlockedRestaurantButton" type="button">Add block</button>
+            <button class="ghost" id="resetBlocksButton" type="button">Reset blocks</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Blocked restaurants <small>tap to remove</small></label>
+          <div class="tag-list" id="blockedRestaurantTags"></div>
+        </div>
+      </aside>
+
+      <section class="result-wrap">
+        <div class="result-card" id="resultCard">
+          <div class="placeholder">
+            <div class="dice">🎲</div>
+            <h2>No roll yet.</h2>
+            <p>Choose any filters you care about, then hit the button. The result will include description, phone, and map links for every listed location.</p>
+          </div>
+        </div>
+
+        <div class="panel list-panel">
+          <div class="browse-header">
+            <h2>Eligible restaurants</h2>
+            <span id="listCount">0 shown</span>
+          </div>
+          <div class="restaurant-list" id="restaurantList"></div>
+        </div>
+
+        <div class="panel history hidden" id="historyPanel">
+          <h2>Recent rolls</h2>
+          <ol id="historyList"></ol>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const RESTAURANTS = [
+  {
+    "name": "Daan Middle Eastern Cuisine",
+    "category": "AFRICAN",
+    "description": "A Middle Eastern restaurant is opening on the north side of the New Day Auto Sales building. Try out some great Middle Eastern food like kebabs and falafel.",
+    "locations": [
+      {
+        "address": "4554 7th Ave S, Fargo",
+        "phone": "701.532.1378"
+      }
+    ]
+  },
+  {
+    "name": "Hooyo’s Kitchen",
+    "category": "AFRICAN",
+    "description": "Led by the previous owner of Madina Cuisine, this cozy Somali fusion restaurant serves large portions and celebrates tradition while providing a modern twist.",
+    "locations": [
+      {
+        "address": "844 45th St S, Ste A, Fargo",
+        "phone": "701.532.0832"
+      }
+    ]
+  },
+  {
+    "name": "Kaibeh’s Kitchen",
+    "category": "AFRICAN",
+    "description": "Find a genuine taste of Africa with Liberian flavors at Kaibeh’s; featuring large plates with fried rice, roasted meat, plantains, and vegetables with different spice levels.",
+    "locations": [
+      {
+        "address": "1345 Main Ave, Fargo",
+        "phone": "763.777.2528"
+      }
+    ]
+  },
+  {
+    "name": "Mama Africa Cuisine",
+    "category": "AFRICAN",
+    "description": "Indulge in Fargo-Moorhead’s premier West African restaurant offering authentic homemade Ghanaian cuisine. Whether dining in or taking out, enjoy generous portions and a diverse menu catering to all tastes while still savoring the rich favors.",
+    "locations": [
+      {
+        "address": "1000 45th St S, Ste 300A, Fargo",
+        "phone": "701.781.7530"
+      }
+    ]
+  },
+  {
+    "name": "Rugsan Cuisine",
+    "category": "AFRICAN",
+    "description": "Founded by the inspiration of owners’ East African roots. Serving Somali and East African dishes, sample things like goat or beef served on rice. Specialties include Kay Kay and traditional African samosas (a filled, deep-fried pastry).",
+    "locations": [
+      {
+        "address": "2424 13th Ave S, Ste 101, Fargo",
+        "phone": "701.293.1820"
+      }
+    ]
+  },
+  {
+    "name": "The Spice Grille",
+    "category": "AFRICAN",
+    "description": "Serving a new Afro-Caribbean flavor to the Fargo- Moorhead area, The Spice Grille serves menu items such as curry goat and jerk chicken. Most of the menu focuses on Ghanaian flavors like peanut butter soup, fufu (a dough-like ball of plantain flour), and jollof rice ( a rice and tomato dish similar to jambalaya). Seasonings and Spices can be adjusted to your taste buds while still trying something new and adventurous.",
+    "locations": [
+      {
+        "address": "28 Center Mall Ave, Moorhead",
+        "phone": "218.593.8000"
+      }
+    ]
+  },
+  {
+    "name": "Bar Down Sports Bar & Restaurant",
+    "category": "AMERICAN",
+    "description": "Bar Down is a family spot for sports lovers. Their menu offers something for everyone with burgers, sandwiches, pizza from their hot rocks oven, plus chicken strips adjacent to The Lights entertainment center and the West Fargo Sports Arena.",
+    "locations": [
+      {
+        "address": "3150 Sheyenne St. S, Ste 100, West Fargo",
+        "phone": "701.532.3696"
+      }
+    ]
+  },
+  {
+    "name": "Barcode Bar & Grill",
+    "category": "AMERICAN",
+    "description": "Homemade pizzas, beer cheese soup, burgers, wraps, and sandwiches fill the menu. Add drinks during happy hour, or try their lunch menu and you’re set at this cozy sports bar. Visit in the summer to enjoy their outdoor patio that’s also dog-friendly.",
+    "locations": [
+      {
+        "address": "835 23rd Ave E, West Fargo",
+        "phone": "701.532.2900"
+      }
+    ]
+  },
+  {
+    "name": "Baron’s Eatery & Bar",
+    "category": "AMERICAN",
+    "description": "Baron’s is tucked away from all the hustle and bustle and fun of Kingpinz with its own space. Appetizers, pizza, tacos, and handhelds are available to order right to your bowling lane but enjoy the rest of the made-from-scratch menu inside the eatery.",
+    "locations": [
+      {
+        "address": "3485 Jacks Way S, Fargo",
+        "phone": "701.532.2695"
+      }
+    ]
+  },
+  {
+    "name": "Beer & Fish Company",
+    "category": "AMERICAN",
+    "description": "A casual seafood restaurant with an urban ambiance and nautical vibe, Beer & Fish features an oyster bar sourced from the east coast, fine seafood dishes, and a huge selection of tap beers. The airy restaurant also has gluten-free options and a large patio.",
+    "locations": [
+      {
+        "address": "230 Roberts Alley, Fargo",
+        "phone": "701.532.1342"
+      }
+    ]
+  },
+  {
+    "name": "Bison Turf",
+    "category": "AMERICAN",
+    "description": "This NDSU student stomping ground serves bar food in all its glory. Grab a pint and some nachos, mozzarella sticks, burgers, sandwiches, or the student-favorite, jalapeño cheese nuggets.",
+    "locations": [
+      {
+        "address": "1211 N University Dr, Fargo",
+        "phone": "701.235.9118"
+      }
+    ]
+  },
+  {
+    "name": "BorderTown Bar & Grill",
+    "category": "AMERICAN",
+    "description": "Pool tables, darts, and a large bar area greet you. This is a great spot for Bison Gamedays or for some great specials on drinks and food each day of the week.",
+    "locations": [
+      {
+        "address": "807 Main Ave E, West Fargo",
+        "phone": "701.277.1968"
+      }
+    ]
+  },
+  {
+    "name": "Brew Bird",
+    "category": "AMERICAN",
+    "description": "Funky fried (gluten-free) chicken is Brew Bird’s specialty, located just outside of Downtown Fargo, this place serves up fried chicken entrees with Southern-style sides.",
+    "locations": [
+      {
+        "address": "30 N University Dr, Fargo",
+        "phone": "701.205.0238"
+      }
+    ]
+  },
+  {
+    "name": "Brewtus’ Brickhouse",
+    "category": "AMERICAN",
+    "description": "Brewtus’ Brickhouse dishes out New York-style pizza, steak stroganoff, sloppy joes and other pub foods. Plus, daily drink specials including a domestic pitcher + app for $11.95.",
+    "locations": [
+      {
+        "address": "705 32nd Ave. E, West Fargo",
+        "phone": "701.532.1397"
+      }
+    ]
+  },
+  {
+    "name": "Brewtus’ Clubhouse",
+    "category": "AMERICAN",
+    "description": "Overlooking the Osgood golf course, Brewtus’ Clubhouse has the go-to American fare such as burgers and New York style pizzas with a golf-themed twist and over 20 tap beers.",
+    "locations": [
+      {
+        "address": "4400 Clubhouse Drive S, Fargo",
+        "phone": "701.356.6463"
+      }
+    ]
+  },
+  {
+    "name": "Bulldog Tap",
+    "category": "AMERICAN",
+    "description": "This casual South Fargo staple is consistently voted as the best bar in Fargo and pours craft brews, cocktails, and of course, bulldogs.",
+    "locations": [
+      {
+        "address": "4265 45th St S, Fargo",
+        "phone": "701.356.3827"
+      }
+    ]
+  },
+  {
+    "name": "Burger Time",
+    "category": "AMERICAN",
+    "description": "This iconic 80’s burger joint offers your classic burger and fry meals with a “homestyle” flavor served hot and ready through a drive-through or throwback walk-up window.",
+    "locations": [
+      {
+        "address": "1900 Main Ave, Fargo",
+        "phone": "701.241.9572"
+      },
+      {
+        "address": "1620 1st Ave N, Moorhead",
+        "phone": "218.233.9641"
+      }
+    ]
+  },
+  {
+    "name": "Camp Lonetree",
+    "category": "AMERICAN",
+    "description": "A four-season patio to embrace the seasons is filled with entertainment, campfires, games, curling and has a casual menu of hotdogs, burgers, and homemade french onion dip.",
+    "locations": [
+      {
+        "address": "701 N University Dr, Fargo",
+        "phone": "701.532.0734"
+      }
+    ]
+  },
+  {
+    "name": "Chalili’s Chicken & Wings",
+    "category": "AMERICAN",
+    "description": "Coming to roost in South Fargo serving classic and spicy fried chicken and chicken sandwiches alongside french fries, mashed potatoes, mac and cheese, and more.",
+    "locations": [
+      {
+        "address": "318 10th St N, Fargo",
+        "phone": "701.532.2599"
+      }
+    ]
+  },
+  {
+    "name": "CJ’s Tavern",
+    "category": "AMERICAN",
+    "description": "CJ’s Tavern is located at Rose Creek Golf Course, the menu has burgers and handhelds, appetizers, wings, and macs. Plus, enjoy happy hour everyday.",
+    "locations": [
+      {
+        "address": "1500 East Rose Creek Parkway S, Fargo",
+        "phone": "701.532.2578"
+      }
+    ]
+  },
+  {
+    "name": "Cowboy Jack’s",
+    "category": "AMERICAN",
+    "description": "Serving tater tot hotdish and Sloppy Joes by day, Cowboy Jack’s transforms into a place to dance the night away with nightly DJs, charitable gambling, and campfire patio.",
+    "locations": [
+      {
+        "address": "506 Broadway N, Fargo",
+        "phone": "701.532.1802"
+      }
+    ]
+  },
+  {
+    "name": "Cracked Pepper",
+    "category": "AMERICAN",
+    "description": "This counter-serve lunch joint offers a daily rotating menu in homey, snug digs. You’ll frequently find Midwestern classics like Special K bars, hotdishes, and knoephla soup on the menu. Check out crackedpepperdaily.com for what’s on the menu today.",
+    "locations": [
+      {
+        "address": "4955 17th Ave S, Ste 124, Fargo",
+        "phone": "701.356.0039"
+      }
+    ]
+  },
+  {
+    "name": "CRAVE American Kitchen & Sushi Bar",
+    "category": "AMERICAN",
+    "description": "Crave is an American kitchen & sushi bar with a chic ambiance and diverse menu choices. Build your own rice or Poke bowl, seafood paella, or choose from the modern sushi menu. Plus, they serve great cocktails, mocktails, and have an extensive wine list.",
+    "locations": [
+      {
+        "address": "West Acres Mall 3902 13th Ave S, Fargo",
+        "phone": "701.809.9020"
+      }
+    ]
+  },
+  {
+    "name": "Dempsey’s Public House",
+    "category": "AMERICAN",
+    "description": "A true cornerstone of Downtown Fargo - this original Irish pub has stood the test of time. Known for its warm, no-frills atmosphere, Dempsey’s is where locals and visitors alike gather for hearty pub grub, perfectly poured pints, and strong cocktails.",
+    "locations": [
+      {
+        "address": "226 Broadway, Fargo",
+        "phone": "701.235.5913"
+      }
+    ]
+  },
+  {
+    "name": "DJ’s Grill & Lounge",
+    "category": "AMERICAN",
+    "description": "Located inside the energetic Suite Shots venue, DJ’s puts a fresh spin on pub-inspired eats. Dig into crave-worthy favorites like double patty smash burgers in a fun atmosphere.",
+    "locations": [
+      {
+        "address": "3400 James Way S, Fargo",
+        "phone": "701.532.4653"
+      }
+    ]
+  },
+  {
+    "name": "Doolittles Woodfire Grill",
+    "category": "AMERICAN",
+    "description": "Doolittle’s provides woodfire rotisserie cooking in the center of the dining room. Try the rotisserie chicken, spit-roasted ribs, and steak amidst aircraft-themed decor. Sip on one of over 60 wines paired and offered in this warm, refined space.",
+    "locations": [
+      {
+        "address": "2112 25th St SW, Fargo",
+        "phone": "701.478.2200"
+      }
+    ]
+  },
+  {
+    "name": "Double Up Bar Grill & Casino",
+    "category": "AMERICAN",
+    "description": "Double Up is a South Fargo bar and grill featuring classic pub food, daily specials, and double happy hours. With plenty of TVs for sports and a welcoming atmosphere, it’s a go-to spot for casual dining and catching the game.",
+    "locations": [
+      {
+        "address": "3165 33rd St S, Fargo",
+        "phone": "701.532.2454"
+      }
+    ]
+  },
+  {
+    "name": "Drawing Room",
+    "category": "AMERICAN",
+    "description": "The Drawing Room is a hidden, speakeasy-style cocktail bar beneath Mezzaluna, offering craft cocktails, small plates, intimate vibes, and no reservations required.",
+    "locations": [
+      {
+        "address": "309 Roberts St N, Fargo",
+        "phone": "701.364.9479"
+      }
+    ]
+  },
+  {
+    "name": "Fargo Billards & Gastropub",
+    "category": "AMERICAN",
+    "description": "Fargo Billiards is the perfect hangout for casual nights or competitive fun. Dig into beer-battered walleye fingers, hand-tossed pizza, prime cut sandwiches, or their signature jambalaya.",
+    "locations": [
+      {
+        "address": "3234 43rd St S, Fargo",
+        "phone": "701.282.4168"
+      }
+    ]
+  },
+  {
+    "name": "Fargo Cork ‘N Cleaver",
+    "category": "AMERICAN",
+    "description": "Try one of the best steaks in the metro area, serving up hand-cut, farm-to-table beef. This cozy, rustic-chic spot is perfect for a special night out or a relaxed drink by the fireplace.",
+    "locations": [
+      {
+        "address": "3301 University Dr S, Fargo",
+        "phone": "701.237.6790"
+      }
+    ]
+  },
+  {
+    "name": "Frank’s Lounge",
+    "category": "AMERICAN",
+    "description": "Frank’s Lounge revitalizes a piece of Fargo history from the Pink Pussy Cat with a menu full of burgers, wraps, soups, salads, and lahvosh flatbreads.",
+    "locations": [
+      {
+        "address": "2640 52nd Ave S, Fargo",
+        "phone": "701.356.9356"
+      }
+    ]
+  },
+  {
+    "name": "Grand Junction",
+    "category": "AMERICAN",
+    "description": "Grand Junction serves hot subs stacked with grilled meat, melted cheese, and fresh toppings—don’t forget their famous Cajun fries.",
+    "locations": [
+      {
+        "address": "435 Main Ave, Moorhead",
+        "phone": "218.287.5651"
+      },
+      {
+        "address": "5050 13th Ave S, Fargo",
+        "phone": "701.373.0064"
+      },
+      {
+        "address": "3051 25th St S, Fargo",
+        "phone": "701.364.9421"
+      },
+      {
+        "address": "1100 19th Ave N, Fargo",
+        "phone": "701.234.1999"
+      }
+    ]
+  },
+  {
+    "name": "Granite City",
+    "category": "AMERICAN",
+    "description": "Known for its excellent Sunday brunch, Granite City serves great American cuisine all week. They also have a microbrewery offering one of their locally-brewed beers with your meal.",
+    "locations": [
+      {
+        "address": "1636 42nd St S, Fargo",
+        "phone": "701.293.3000"
+      }
+    ]
+  },
+  {
+    "name": "Hangry Joe’s Hot Chicken & Wings",
+    "category": "AMERICAN",
+    "description": "Hangry Joe’s Hot Chicken brings authentic Nashville Hot Chicken to Fargo that’s premium, and never frozen. Choose your own level of spice for your sandwhiches, wings, or fingers.",
+    "locations": [
+      {
+        "address": "1100 19th Ave N, Fargo",
+        "phone": "701.809.9939"
+      },
+      {
+        "address": "4501 15th Ave S, Unit 113, Fargo",
+        "phone": "701.291.8867"
+      }
+    ]
+  },
+  {
+    "name": "Harry’s Steakhouse",
+    "category": "AMERICAN",
+    "description": "Harry’s serves various steaks aged a minimum of 21 days for flavor and tenderness. Other menu items include seafood, shareable sides, house-made cocktails, beer, and wine.",
+    "locations": [
+      {
+        "address": "915 19th Ave E, West Fargo",
+        "phone": "701.610.9620"
+      }
+    ]
+  },
+  {
+    "name": "Hen House Bar & Restaurant",
+    "category": "AMERICAN",
+    "description": "Hen House serves up daily deals and laid-back vibes all week long. From their popular domestic pitcher and app combo, to $10 boneless wings and $6 Mug Club Saturdays.",
+    "locations": [
+      {
+        "address": "935 37th Ave S, Ste 136, Moorhead",
+        "phone": "218.359.0744"
+      }
+    ]
+  },
+  {
+    "name": "Herd & Horns",
+    "category": "AMERICAN",
+    "description": "Herd & Horns is a go-to for burgers, beer, and all things Bison. This upbeat sports bar serves up loaded apps, fresh salads, tacos, and three styles of mac and cheese.",
+    "locations": [
+      {
+        "address": "1414 12th Ave N, Fargo",
+        "phone": "701.551.7000"
+      }
+    ]
+  },
+  {
+    "name": "Hi-Ho Burgers & Brews",
+    "category": "AMERICAN",
+    "description": "Since 1947 Hi-Ho has been serving classic hamburgers and fries, but you can also find items like grilled cheeses, hot dogs, and a philly steak. Try the Hi-Ho Special for a timeless classic.",
+    "locations": [
+      {
+        "address": "3051 25th St S, Fargo",
+        "phone": "701.280.9505"
+      }
+    ]
+  },
+  {
+    "name": "Hooligan’s Bar & Grill",
+    "category": "AMERICAN",
+    "description": "Burgers are the star of the menu with a lumberjack or hot hickory western option. Plus, the wings, pizza, and sandwiches are great. Try the breakfast, served 7 days a week.",
+    "locations": [
+      {
+        "address": "509 32nd Ave W",
+        "phone": "701.373.0770"
+      }
+    ]
+  },
+  {
+    "name": "Jay’s Smokin’ BBQ",
+    "category": "AMERICAN",
+    "description": "Smoked chicken, pulled pork, beef brisket, nachos, and street tacos await at this BBQ joint found on the southside of downtown Fargo. Stop by for daily specials, Sunday brunch, and more.",
+    "locations": [
+      {
+        "address": "1322 Main Ave, Fargo",
+        "phone": "701.478.1112"
+      }
+    ]
+  },
+  {
+    "name": "JL Beers",
+    "category": "AMERICAN",
+    "description": "JL Beers is a Fargo favorite, often voted “Best Burgers and Fries.” This 21+ spot serves creative burgers (yes, even with peanut butter) and nearly 40 craft beers. With limited seating and a cozy bar setup, it’s the perfect place to grab a stool and dig in.",
+    "locations": [
+      {
+        "address": "518 1st Ave N, Fargo",
+        "phone": "701.492.3377"
+      },
+      {
+        "address": "4240 32nd Ave S, Fargo",
+        "phone": "701.356.4240"
+      },
+      {
+        "address": "810 13th Ave E, West Fargo",
+        "phone": "701.373.8484"
+      }
+    ]
+  },
+  {
+    "name": "Labby’s Grill & Bar",
+    "category": "AMERICAN",
+    "description": "A family-friendly grill and bar that’s perfect before and after events at the FARGODOME or viewing the big game. Be sure to check their website each week for new daily specials.",
+    "locations": [
+      {
+        "address": "1100 19th Ave N, Fargo",
+        "phone": "701.478.5227"
+      }
+    ]
+  },
+  {
+    "name": "Legends Sports Bar & Grill",
+    "category": "AMERICAN",
+    "description": "Legends Sports Bar and Grill is your destination for sports and excellent bar food. The menu features flatbreads, burgers, and a potato side or “spud” as a nod to Moorhead High.",
+    "locations": [
+      {
+        "address": "803 Belsly Blvd, Moorhead",
+        "phone": "218.477.1010"
+      }
+    ]
+  },
+  {
+    "name": "Louie’s Sports Bar & Grill",
+    "category": "AMERICAN",
+    "description": "Louie’s serves a full menu featuring classic bar food with an Italian twist. Enjoy 26 beer taps, a cocktail menu, and daily charitable gambling starting at noon.",
+    "locations": [
+      {
+        "address": "635 32nd Ave E, West Fargo",
+        "phone": "701.532.2629"
+      }
+    ]
+  },
+  {
+    "name": "Lucky’s 13 Pub",
+    "category": "AMERICAN",
+    "description": "A hidden gem serving up some of the best handhelds around. From crispy walleye fingers to Korean beef tacos with a kick, the menu is full of bold, satisfying flavors.",
+    "locations": [
+      {
+        "address": "4301 17th Ave S, Fargo",
+        "phone": "701.551.0013"
+      }
+    ]
+  },
+  {
+    "name": "Luna",
+    "category": "AMERICAN",
+    "description": "Luna has evolved into one of Fargo’s most beloved neighborhood spots - a cozy kitchen and wine & beer lounge that celebrates local flavors with an ever-changing, seasonally inspired menu.",
+    "locations": [
+      {
+        "address": "1545 University Dr S, Fargo",
+        "phone": "701.293.8818"
+      },
+      {
+        "address": "1702 1st Ave N, Brewhalla Fargo",
+        "phone": "701.478.5291"
+      }
+    ]
+  },
+  {
+    "name": "Mangata Wine & Raw Bar",
+    "category": "AMERICAN",
+    "description": "Offering a wine bar setting within the new Drekker Brewhalla Market, Mangata provides patrons with sustainably sourced seafood like seasonal oysters on the half shell and wild-caught salmon along with thoughtfully curated wines from small producers.",
+    "locations": [
+      {
+        "address": "1702 1st Ave N, Fargo Brewhalla",
+        "phone": "701.478.5290"
+      }
+    ]
+  },
+  {
+    "name": "Marge’s Supper Club & Casino",
+    "category": "AMERICAN",
+    "description": "Marge’s Supper Club & Casino in West Fargo serves lunch, dinner & late-night fare in a quirky, retro-decor setting, with a popular soup & salad bar and the Marge’s Mug Club which offers dicounts on drinks, food, and merch.",
+    "locations": [
+      {
+        "address": "675 13th Ave E, West Fargo",
+        "phone": "701.532.0376"
+      }
+    ]
+  },
+  {
+    "name": "Maxwells",
+    "category": "AMERICAN",
+    "description": "Maxwells has interesting flavors in dishes like lump crab cakes, and bison meatballs in vermouth cream sauce, along with multiple steak and seafood options.",
+    "locations": [
+      {
+        "address": "1380 9th St E, West Fargo",
+        "phone": "701.277.9463"
+      }
+    ]
+  },
+  {
+    "name": "Mezzaluna",
+    "category": "AMERICAN",
+    "description": "Hidden right behind the historic Fargo Theatre, this restaurant started as an office and warehouse. Try steamed mussels, steak tartare, or an artisan cheese plate.",
+    "locations": [
+      {
+        "address": "309 Roberts St N, Fargo",
+        "phone": "701.364.9479"
+      }
+    ]
+  },
+  {
+    "name": "Mick’s Office",
+    "category": "AMERICAN",
+    "description": "Mick’s Office makes incredible burgers. Order at the bar for a variety of made-to-order burgers and fries. Wednesdays are buck fifty burger night, where you can build your own burger.",
+    "locations": [
+      {
+        "address": "10 8th St S, Moorhead",
+        "phone": "218.233.2295"
+      }
+    ]
+  },
+  {
+    "name": "Midtown Tavern",
+    "category": "AMERICAN",
+    "description": "This newly redone bar serves Duane’s pizza alongside a large American menu. “A great place to meet” and enjoy delicious appetizers, daily happy hours, and 20 beers on tap.",
+    "locations": [
+      {
+        "address": "2223 Highway 10 E, Moorhead",
+        "phone": "218.236.0550"
+      }
+    ]
+  },
+  {
+    "name": "Murphy’s Pub",
+    "category": "AMERICAN",
+    "description": "This giant bar has menu items like pizza, sandwiches, burgers, and a whole page of sauces. Try the mini murph - a twice-baked potato with toppings or opt for their pizza of the month. They also host local musicians for a fun night of music and dancing.",
+    "locations": [
+      {
+        "address": "808 S 30th Ave S, Moorhead",
+        "phone": "218.512.0310"
+      }
+    ]
+  },
+  {
+    "name": "NoBull Smokehouse",
+    "category": "AMERICAN",
+    "description": "Satisfy your ‘meat tooth’ with sausage, pork, ribs, brisket, and whole chicken served family-style. Massive shareable platters meant for the whole group. Plus, they have great late night specials like their 2-4-1’s from 10pm to close on the weekends.",
+    "locations": [
+      {
+        "address": "609 NP Ave, Fargo",
+        "phone": "701.478.2000"
+      }
+    ]
+  },
+  {
+    "name": "Nova Eatery & Supper Club",
+    "category": "AMERICAN",
+    "description": "Serving breakfast, lunch, and dinner, Nova Eatery’s menu includes steaks, comfort foods, and supper club favorites like a relish tray, shrimp cocktail, and oysters.",
+    "locations": [
+      {
+        "address": "402 N Broadway, Fargo",
+        "phone": "701.532.4303"
+      }
+    ]
+  },
+  {
+    "name": "Old Broadway",
+    "category": "AMERICAN",
+    "description": "Sit in the high-ceilinged interior or on their patio while you eat hearty pub food like fried pickles, wings, and burgers. The OB is great for lunch or for the late-night scene.",
+    "locations": [
+      {
+        "address": "22 Broadway, Fargo",
+        "phone": "701.237.6161"
+      }
+    ]
+  },
+  {
+    "name": "O’Clevy’s Drinks & Eats",
+    "category": "AMERICAN",
+    "description": "Known for their outstanding wings and tater tots, O’Cleavy’s Drinks & Eats is a great place to catch a Bison game, hang out with friends, play darts and pool, or pull tabs.",
+    "locations": [
+      {
+        "address": "3333 13th Ave S, Fargo",
+        "phone": "701.235.3333"
+      }
+    ]
+  },
+  {
+    "name": "Pepper’s Sports Cafe",
+    "category": "AMERICAN",
+    "description": "Peppered (see what we did there?) with TVs playing the day’s biggest games, you can find classic sports food like sandwiches, burgers, and wings along with some signature ribs.",
+    "locations": [
+      {
+        "address": "2510 University Dr S, Fargo",
+        "phone": "701.232.2366"
+      }
+    ]
+  },
+  {
+    "name": "Porter Creek Hardwood Grill",
+    "category": "AMERICAN",
+    "description": "Porter Creek offers a California-Mediterranean menu with steaks, seafood, and wood-fired flatbread. Enjoy the scenic patio, a cozy oasis for a casual, breezy dining experience.",
+    "locations": [
+      {
+        "address": "1555 44th St S, Fargo",
+        "phone": "701.369.3669"
+      }
+    ]
+  },
+  {
+    "name": "Pounds",
+    "category": "AMERICAN",
+    "description": "Enjoy the loaded everything bagel mac, wings with torch sauce (featured on Triple D), or any burger. Head here for ultimate vibes, whether for lunch or late night.",
+    "locations": [
+      {
+        "address": "6 Broadway N, Fargo",
+        "phone": "701.478.1234"
+      }
+    ]
+  },
+  {
+    "name": "Prairie Kitchen",
+    "category": "AMERICAN",
+    "description": "Celebrate our heritage of the Midwest in a funky, cozy, Nordic kitchen. Try a classic like Swedish meatballs, their lefse platter, or their hotdish of the moment.",
+    "locations": [
+      {
+        "address": "701 N University Dr, Fargo",
+        "phone": "701.532.0734"
+      }
+    ]
+  },
+  {
+    "name": "Pub West",
+    "category": "AMERICAN",
+    "description": "Pub West goes all out for appetizers, burgers, sandwiches, wraps, and drink specials. There are 16 beers on tap and a huge sidewalk patio, dartboards, and pool tables.",
+    "locations": [
+      {
+        "address": "3140 Bluestem Dr, West Fargo",
+        "phone": "701.356.9378"
+      }
+    ]
+  },
+  {
+    "name": "Randy’s on The Rail",
+    "category": "AMERICAN",
+    "description": "From the owners of Randy’s Diner, Randy’s on the Rail serves up classic bar favorites starting at 4 p.m. Enjoy burgers, wings, mac and cheese, pizzas, and more in a laid-back setting.",
+    "locations": [
+      {
+        "address": "701 Center Ave, Moorhead",
+        "phone": "218.790.3663"
+      }
+    ]
+  },
+  {
+    "name": "Rocky’s Burgers Franks & Fries",
+    "category": "AMERICAN",
+    "description": "Rocky’s delivers fresh, homemade steakburgers, loaded dogs, crisp fries, and creamy shakes in a clean and friendly space. Dine-in, drive- thru, or have it delivered.",
+    "locations": [
+      {
+        "address": "2601 32nd Ave S, Fargo",
+        "phone": "701.532.0348"
+      }
+    ]
+  },
+  {
+    "name": "Rookie’s Sports Bar & Grill",
+    "category": "AMERICAN",
+    "description": "You’ll find bar classics with fun names such as the Grand Slam Nachos or Phillydilla and Grand Slamwiches. Plus, each of their pizzas is hand-tossed from homemade dough.",
+    "locations": [
+      {
+        "address": "715 13th Ave E, Fargo",
+        "phone": "701.492.3456"
+      }
+    ]
+  },
+  {
+    "name": "Rosewild",
+    "category": "AMERICAN",
+    "description": "Rosewild in the Jasper Hotel downtown blends Fargo traditions with rustic Nordic cuisine. Local ingredients create a warm atmosphere, whether by the woodfire hearth or on the patio.",
+    "locations": [
+      {
+        "address": "Jasper Hotel, 215 Broadway N, Fargo",
+        "phone": "701.532.2150"
+      }
+    ]
+  },
+  {
+    "name": "Round Up Saloon",
+    "category": "AMERICAN",
+    "description": "Cold beer, stiff drinks, and tasty food are the tagline at Round Up. Try a Grilled Curty Cristo or Triple Decker grilled cheese along with an ice cold beverage during the game.",
+    "locations": [
+      {
+        "address": "4501 Urban Plains Dr, Fargo",
+        "phone": "701.499.1397"
+      }
+    ]
+  },
+  {
+    "name": "Rustica Eatery & Tavern",
+    "category": "AMERICAN",
+    "description": "The Eatery section offers up higher-end meals with seasonal-focused products, while the Tavern serves small plates and pizzas throughout the evening with drink and food happy hour deals.",
+    "locations": [
+      {
+        "address": "315 Main Ave, Moorhead",
+        "phone": "218.227.5388"
+      }
+    ]
+  },
+  {
+    "name": "Sandbox Restaurant & Bar",
+    "category": "AMERICAN",
+    "description": "Comfort foods are at the core of The Sandbox’s menu with burgers, brats, sandwiches, hot turkey, meatloaf, Swedish meatballs, and gravy.",
+    "locations": [
+      {
+        "address": "3147 Bluestem Dr, West Fargo",
+        "phone": "701.532.2699"
+      }
+    ]
+  },
+  {
+    "name": "Shy Bar",
+    "category": "AMERICAN",
+    "description": "This West Fargo hotspot dishes out classic burgers, cold drinks, and wall-to-wall TVs—perfect for game day or a casual night out.",
+    "locations": [
+      {
+        "address": "3330 Sheyenne St Ste 108, West Fargo",
+        "phone": "701.990.1478"
+      }
+    ]
+  },
+  {
+    "name": "Sickies Garage",
+    "category": "AMERICAN",
+    "description": "Consistently voted as having the ‘Best Burgers in Fargo’, try the donut burger (the donut is the bun!), or if beef isn’t calling your name, a salad, wrap, or chicken sandwich might instead.",
+    "locations": [
+      {
+        "address": "3431 Fiechtner Dr S, Fargo",
+        "phone": "701.478.7425"
+      },
+      {
+        "address": "2551 45th St S, Fargo",
+        "phone": "701.532.3202"
+      }
+    ]
+  },
+  {
+    "name": "Sidestreet Grille & Pub",
+    "category": "AMERICAN",
+    "description": "Gourmet-style hot dogs, sandwiches, pizzas, and burgers, in a fun bar atmosphere where you can enjoy your meal. Plus, local live music acts take the stage throughout the week.",
+    "locations": [
+      {
+        "address": "404 4th Ave N, Fargo",
+        "phone": "701.271.0092"
+      }
+    ]
+  },
+  {
+    "name": "Silver Dollar - Flying Pig Bar & Grill",
+    "category": "AMERICAN",
+    "description": "Boasting an extensive burger menu, the Silver Dollar is also known for its pork options, like smoked brisket, sloppy pig sandwich, and sloppy pig supreme.",
+    "locations": [
+      {
+        "address": "221 Sheyenne St, West Fargo",
+        "phone": "701.281.0715"
+      }
+    ]
+  },
+  {
+    "name": "Smoke & Iron",
+    "category": "AMERICAN",
+    "description": "Smoke & Iron offers a contemporary twist on classic comfort food with menu items like plantain croquettes, flatbreads topped with smoked bacon and gouda, and hanger steak frites.",
+    "locations": [
+      {
+        "address": "611 32nd Ave W, West Fargo",
+        "phone": "701.532.1051"
+      }
+    ]
+  },
+  {
+    "name": "Sol Ave. Kitchen",
+    "category": "AMERICAN",
+    "description": "A fast casual concept- globally (and thoughtfully) inspired street food with a Midwestern twist. This bright eatery’s sole aim is to leave you happy.",
+    "locations": [
+      {
+        "address": "1408 1st Ave N, Ste 2, Moorhead",
+        "phone": "218.284.7653"
+      }
+    ]
+  },
+  {
+    "name": "SouthTown PourHouse",
+    "category": "AMERICAN",
+    "description": "SouthTown PourHouse serves four different styles of mac ‘n’ cheese alongside tantalizing burgers, wraps, sandwiches, and melts. Local-favorite Duane’s Pizza is also on the menu.",
+    "locations": [
+      {
+        "address": "4281 45th St S, Fargo",
+        "phone": "701.532.1878"
+      }
+    ]
+  },
+  {
+    "name": "Space Aliens Grill and Bar",
+    "category": "AMERICAN",
+    "description": "A galactic-themed BBQ spot with neon arcade fun for kids. Popular for their BBQ offerings, enjoy burgers, pizzas, steaks & more—plus daily food and drink specials.",
+    "locations": [
+      {
+        "address": "1840 45th St S, Fargo",
+        "phone": "701.281.2033"
+      }
+    ]
+  },
+  {
+    "name": "Spitfire Bar & Grill",
+    "category": "AMERICAN",
+    "description": "Spitfire serves up award- winning BBQ with spit-roasted chicken, ribs, and wood-fired meats. A casual spot hailed by Food Network as North Dakota’s best BBQ.",
+    "locations": [
+      {
+        "address": "1660 13th Ave E, West Fargo",
+        "phone": "701.478.8667"
+      }
+    ]
+  },
+  {
+    "name": "Tailgators Sports Café",
+    "category": "AMERICAN",
+    "description": "This laid-back eatery does not serve your normal chicken wings; they fry up the entire wing with your choice of sauces. The rest of the menu includes pasta, specialty pizzas, and wraps.",
+    "locations": [
+      {
+        "address": "1322 Main Ave, Fargo",
+        "phone": "701.293.2091"
+      }
+    ]
+  },
+  {
+    "name": "The Local 701",
+    "category": "AMERICAN",
+    "description": "Head to The Local 701 for a menu of bar bites, 27 taps, full gaming, live music, 19 big screens, darts, and $2.75 drinks, plus seasonal cocktails and lunch specials.",
+    "locations": [
+      {
+        "address": "1405 Prairie Parkway, West Fargo",
+        "phone": "701.356.0099"
+      }
+    ]
+  },
+  {
+    "name": "The Piggy BBQ",
+    "category": "AMERICAN",
+    "description": "Local BBQ joint serving up homestyle ribs, pulled pork sandwiches, and more. The Piggy BBQ is perfect for the whole family with fresh smoked barbeque and even Jackfruit pulled pork for vegans.",
+    "locations": [
+      {
+        "address": "816 24th Ave E, #118, West Fargo",
+        "phone": "701.540.6557"
+      }
+    ]
+  },
+  {
+    "name": "The Tavern Grill",
+    "category": "AMERICAN",
+    "description": "The Tavern is known for its Sunday Brunches and build- your-own pizza, salad, or burgers. If you’re looking for the perfect place for Happy Hour, the Tavern is the perfect choice.",
+    "locations": [
+      {
+        "address": "4504 32nd Ave S, Fargo",
+        "phone": "701.532.0777"
+      }
+    ]
+  },
+  {
+    "name": "The Toasted Frog",
+    "category": "AMERICAN",
+    "description": "Adorning Fargo’s main drag with a gorgeous view of the Fargo Theatre, this classy spot will have you craving a martini alongside the signature fried cheesy pickles. For your main, try wood-fired lobster tail, walleye, or a seasonal dish.",
+    "locations": [
+      {
+        "address": "305 Broadway N, Fargo",
+        "phone": "701.478.7888"
+      }
+    ]
+  },
+  {
+    "name": "The Zone Bar",
+    "category": "AMERICAN",
+    "description": "Menu items include an extensive appetizer list, pizza, melts, and burgers. Late-night happy hours include $3.50 you-call-its throughout the week.",
+    "locations": [
+      {
+        "address": "701 Main Ave E, West Fargo",
+        "phone": "701.277.5652"
+      }
+    ]
+  },
+  {
+    "name": "True North Bistro",
+    "category": "AMERICAN",
+    "description": "Located inside the Four Points by Sheraton, the bistro cooks in an environmentally friendly kitchen without any deep fryers or extra grease. Start with a delicious breakfast, and return for lunch and dinner for dishes infused with local ingredients and served with a beer. Urban 42",
+    "locations": [
+      {
+        "address": "Four Points by Sheraton 5064 23rd Ave S, Fargo",
+        "phone": "701.364.0000"
+      }
+    ]
+  },
+  {
+    "name": "Urban 42",
+    "category": "AMERICAN",
+    "description": "Located in Delta Hotels by Marriott Fargo, Urban 42 serves fresh American cuisine in a rustic modern setting. Enjoy shareable small plates, burgers, chef- crafted entrees, and a full bar with craft beers, signature cocktails, and an extensive wine list.",
+    "locations": [
+      {
+        "address": "Delta Hotels by Marriott Fargo, 1635 42nd St S, Fargo",
+        "phone": "701.281.7105"
+      }
+    ]
+  },
+  {
+    "name": "Vic’s Bar & Grill",
+    "category": "AMERICAN",
+    "description": "Vic’s Bar and Grill is the perfect spot for locals and visitors alike in Moorhead. Located in a newly renovated space, this neighborhood favorite serves up classic burgers, crispy fries, hearty sandwiches, plus a rotating selection of nightly drink specials.",
+    "locations": [
+      {
+        "address": "1608 Main Ave, Moorhead",
+        "phone": "218.236.7714"
+      }
+    ]
+  },
+  {
+    "name": "Wicked Willie’s Seafood Steam Pots",
+    "category": "AMERICAN",
+    "description": "Wicked Willie’s makes enjoying fresh, delicious seafood easier than ever with their Seafood Steam Pots to-go. Perfect for a quick, flavorful meal, each pot is packed with shrimp, lobster, crab, and other tasty seafood, all steamed to perfection.",
+    "locations": [
+      {
+        "address": "5050 Timber Pkwy S, Unit 128, Fargo",
+        "phone": "701.394.8739"
+      }
+    ]
+  },
+  {
+    "name": "Wild Bill’s Sports Saloon",
+    "category": "AMERICAN",
+    "description": "Step into Wild Bill’s Sport Saloon, where classic bar food meets an Old West vibe. Relax with a cold drink and catch the game on their wall-to-wall TVs, or try your luck with blackjack, pull tabs, and bingo— including their fun disco bingo events.",
+    "locations": [
+      {
+        "address": "1776 45th St S, Fargo",
+        "phone": "701.532.0301"
+      }
+    ]
+  },
+  {
+    "name": "Woody’s Bar & Grill",
+    "category": "AMERICAN",
+    "description": "A classic bar experience with dark, cozy interiors and plenty of TV screens for game time. Known for its great drink specials, this local favorite serves up all your bar and grill cravings - from juicy burgers, sandwiches, and several comfort food options.",
+    "locations": [
+      {
+        "address": "1550 32nd Ave S, Fargo",
+        "phone": "701.241.9817"
+      }
+    ]
+  },
+  {
+    "name": "Drunken Noodle",
+    "category": "ASIAN",
+    "description": "This spot is filled with Asian- inspired art serving Asian street food, noodle dishes, and rice bowls. Go from yakisoba, pad thai, or fried rice to mac & cheese, and spicy Cajun pasta.",
+    "locations": [
+      {
+        "address": "414 Broadway N, Fargo",
+        "phone": "701.232.3380"
+      }
+    ]
+  },
+  {
+    "name": "House of Noods + Buns",
+    "category": "ASIAN",
+    "description": "This hot-spot carries Asian- inspired noodle bowls with savory broth and steamed bao buns. Try their small plates, such as steamed pork dumplings, the Ramen Latke Bowl, and more.",
+    "locations": [
+      {
+        "address": "Brewhalla, 1702 1st Ave N, Fargo",
+        "phone": "000.000.0000"
+      }
+    ]
+  },
+  {
+    "name": "KPOT Korean BBQ and Hot Pot",
+    "category": "ASIAN",
+    "description": "Step into a contemporary space to experience cook-it- yourself Korean BBQ and hot pot options, all custommizable to your palette. Handpick your meat, vegetables, and sauces.",
+    "locations": [
+      {
+        "address": "4410 17th Ave SW, Fargo",
+        "phone": "701.532.0233"
+      }
+    ]
+  },
+  {
+    "name": "Little Brother",
+    "category": "ASIAN",
+    "description": "Offering a unique mix of Korean, Thai, and Vietnamese dishes, Little Brother serves crispy Korean chicken wings and bibimbap, savory chicken bulgogi, and build-your-own bowls.",
+    "locations": [
+      {
+        "address": "117 Broadway N, Fargo",
+        "phone": "701.532.1980"
+      }
+    ]
+  },
+  {
+    "name": "Lulu’s Deli",
+    "category": "ASIAN",
+    "description": "Lulu’s Deli offers a delicious mix of American, Vietnamese, Japanese, and Korean dishes. Perfect for a quick bite, the menu features savory entrees and refreshing beverages.",
+    "locations": [
+      {
+        "address": "1425 Main Ave, Fargo",
+        "phone": "701.232.0596"
+      }
+    ]
+  },
+  {
+    "name": "Onee Korean Fried Chicken & Bar",
+    "category": "ASIAN",
+    "description": "Onee fills the Korean food gap in the metro with specialties like fried chicken topped with spicy sauce, alongside a full menu of beer and cocktails.",
+    "locations": [
+      {
+        "address": "816 24th Ave E, Ste 116, West Fargo",
+        "phone": "701.532.2166"
+      }
+    ]
+  },
+  {
+    "name": "China Buffet",
+    "category": "CHINESE",
+    "description": "This buffet serves hot, all- you-can-eat Chinese food and sushi. They also have a large menu to order off featuring mei fun, egg foo young, and 12 chef specialties.",
+    "locations": [
+      {
+        "address": "3246 Hwy 10 E, Moorhead",
+        "phone": "218.233.6868"
+      }
+    ]
+  },
+  {
+    "name": "China King",
+    "category": "CHINESE",
+    "description": "A modern interpretation of classic Chinese dishes on a large buffet, with dine-in or takeout options in West Fargo. Known for its unique take on classic dishes and quality ingredients.",
+    "locations": [
+      {
+        "address": "715 13th Ave E, West Fargo",
+        "phone": "701.277.8909"
+      }
+    ]
+  },
+  {
+    "name": "Fortune House Chinese Resturant",
+    "category": "CHINESE",
+    "description": "Fortune House is a local, family-owned restaurant that specializes in serving Szechuan, Cantonese, and Hunan cuisines. Their menu features Chinese delicacies and chef’s specials.",
+    "locations": [
+      {
+        "address": "1100 19th Ave N, Fargo",
+        "phone": "701.232.6316"
+      }
+    ]
+  },
+  {
+    "name": "Giant Panda",
+    "category": "CHINESE",
+    "description": "All-you-can-eat, seven days a week featuring classic Chinese classics and noodles. Serving Szechuan, Peking, Cantonese, and vegetarian dishes, they also do takeout and delivery.",
+    "locations": [
+      {
+        "address": "1331 Gateway Dr S, Fargo",
+        "phone": "701.298.8558"
+      }
+    ]
+  },
+  {
+    "name": "Great Wall Chinese Restaurant",
+    "category": "CHINESE",
+    "description": "Located in South Fargo, this quaint Chinese restaurant specializes in Cantonese. Traditional dishes like chow mein and lo mein, plus vegetarian and gluten-free options, fill the menu.",
+    "locations": [
+      {
+        "address": "3003 32nd Ave S, Fargo",
+        "phone": "701.232.8288"
+      }
+    ]
+  },
+  {
+    "name": "Lucy’s North China Cuisine",
+    "category": "CHINESE",
+    "description": "Lucy’s fresh Chinese food is some of the most authentic and delicious in town. If you’ve only eaten at Chinese buffets, give Lucy’s a try for a sit down Chinese meal.",
+    "locations": [
+      {
+        "address": "4323 45th St. S, Ste 105, Fargo",
+        "phone": "701.356.5166"
+      }
+    ]
+  },
+  {
+    "name": "Mr Wok Chinese Express",
+    "category": "CHINESE",
+    "description": "From the same owners of Izumi Sushi, Mr. Wok Chinese Express offers a fresh take on Asian cuisine, featuring delicious ramen options. Try one of their signature ramen bowls, packed with rich flavors, and pair it with traditional Asian drinks for the whole experience.",
+    "locations": [
+      {
+        "address": "816 24th Ave E, Ste 100, West Fargo",
+        "phone": "701.540.9188"
+      }
+    ]
+  },
+  {
+    "name": "Nine Dragons",
+    "category": "CHINESE",
+    "description": "Serving up delicious cream cheese wontons, flavorful fried rice, and excellent delivery service, Nine Dragons is a go-to for Chinese cravings. Connected to Slapshot Pizza & Subs, it’s the perfect spot for groups with different tastes.",
+    "locations": [
+      {
+        "address": "4615 23rd Ave S, Fargo",
+        "phone": "701.232.2411"
+      }
+    ]
+  },
+  {
+    "name": "Royal Buffet",
+    "category": "CHINESE",
+    "description": "Royal Buffet offers an all-you-can-eat Chinese buffet with a wide selection of dishes, including fresh sushi, seafood, and chef specialties like Szechuan beef, Hunan chicken, and more. Their daily lunch specials and diverse menu cater to every craving.",
+    "locations": [
+      {
+        "address": "1620 32nd Ave S, Ste 500, Fargo",
+        "phone": "701.532.2666"
+      }
+    ]
+  },
+  {
+    "name": "Shang Hai Chinese Restaurant",
+    "category": "CHINESE",
+    "description": "At Shang Hai, indulge in all-you-can-eat Chinese cuisine at their lunch buffet, offering a variety of dishes to satisfy every craving. Prefer takeout? Grab a bento box to go, or sit down and enjoy a made-to- order meal like the classic hot and sour soup.",
+    "locations": [
+      {
+        "address": "3051 25th St S, Fargo",
+        "phone": "701.280.5818"
+      }
+    ]
+  },
+  {
+    "name": "Snap Dragon",
+    "category": "CHINESE",
+    "description": "The Shih family has been preparing flavorful Asian cuisine using old family recipes for over 60 years, bringing the taste of the Orient to the Midwest via buffet or off-the-menu.",
+    "locations": [
+      {
+        "address": "625 30th Ave S, Moorhead",
+        "phone": "218.287.8412"
+      }
+    ]
+  },
+  {
+    "name": "Super Buffet Sushi & Grill",
+    "category": "CHINESE",
+    "description": "Authentic Chinese cuisine and delicious sushi rolls can be found at this convenient Asian restaurant. Dine-in or take-out your meals for fresh meals and great customer service.",
+    "locations": [
+      {
+        "address": "1000 45th St S, Fargo",
+        "phone": "701.365.8899"
+      }
+    ]
+  },
+  {
+    "name": "Wok N Roll",
+    "category": "CHINESE",
+    "description": "Find authentic Chinese cuisine with flavorful stir-fries, noodles, rice dishes, and more. Enjoy delicious flavors made with fresh ingredients and traditional cooking techniques.",
+    "locations": [
+      {
+        "address": "4501 15th Ave S, Ste 112, Fargo",
+        "phone": "701.831.0311"
+      }
+    ]
+  },
+  {
+    "name": "Atomic Coffee",
+    "category": "COFFEE & TEA",
+    "description": "A big-city vibe that’s still inviting and cozy, this local coffee shop is a favorite. Plenty of seating, fair trade coffee, desserts, and vegan and vegetarian food options.",
+    "locations": [
+      {
+        "address": "222 Broadway, Fargo",
+        "phone": "701.478.6160"
+      }
+    ]
+  },
+  {
+    "name": "Babb’s Coffee House",
+    "category": "COFFEE & TEA",
+    "description": "You can order everything from breakfast to paninis, but we recommend you try a coffee first. The freshly roasted coffee grounds are airlifted weekly from Seattle for West Coast flavor.",
+    "locations": [
+      {
+        "address": "604 Main Ave, Fargo",
+        "phone": "701.271.0222"
+      }
+    ]
+  },
+  {
+    "name": "Beans Coffee Bar",
+    "category": "COFFEE & TEA",
+    "description": "At Beans, with every cup o’ Joe, you get a fresh mini doughnut (you can also buy a full bag of these sweet treats separately). This local coffee shop offers unique daily flavors.",
+    "locations": [
+      {
+        "address": "2550 University Dr. S, Fargo",
+        "phone": "701.566.8187"
+      }
+    ]
+  },
+  {
+    "name": "Bobaholic Tea House",
+    "category": "COFFEE & TEA",
+    "description": "A brand new tea house with premium tea blends and bubble tea. Plus, try the Pho Special Combo option which includes a steaming bowl of customized Pho, spring rolls, and iced tea.",
+    "locations": [
+      {
+        "address": "3051 25th St S, Ste C, Fargo",
+        "phone": "701.639.2177"
+      }
+    ]
+  },
+  {
+    "name": "Bully Brew Coffee House",
+    "category": "COFFEE & TEA",
+    "description": "These people brew a mean cup of coffee, all while paying homage to the owner’s bulldogs. Try their ever- changing bean blends and flavors, or grab a mug with Bully Brew gear.",
+    "locations": [
+      {
+        "address": "3216 Veterans Blvd, Fargo",
+        "phone": "701.639.7205"
+      }
+    ]
+  },
+  {
+    "name": "Chai Moto",
+    "category": "COFFEE & TEA",
+    "description": "Experience unforgettable East African-inspired tea blends. At Chai Moto, they handcraft everything in small batches with intentional ingredients to achieve optimal flavor.",
+    "locations": [
+      {
+        "address": "3955 56th St S, Fargo",
+        "phone": "218.443.4887"
+      }
+    ]
+  },
+  {
+    "name": "Daily Perks Coffee",
+    "category": "COFFEE & TEA",
+    "description": "Hailing from Dickinson, ND, Daily Perks Coffee is slated to open near the Fargo Parks Sports Complex and will offer a drive-up coffee experience with monthly specials.",
+    "locations": [
+      {
+        "address": "3900 54th St S, Fargo",
+        "phone": "000.000.0000"
+      }
+    ]
+  },
+  {
+    "name": "Fresh",
+    "category": "COFFEE & TEA",
+    "description": "Fresh bottled juice that is a perfect suppliment to your diet each day. Choose fresh booost bundles or juice flights that help repair complexion and hair, plus reset your gut.",
+    "locations": [
+      {
+        "address": "623 NP Ave N, Fargo",
+        "phone": "701.532.0769"
+      }
+    ]
+  },
+  {
+    "name": "Froth Coffeehouse",
+    "category": "COFFEE & TEA",
+    "description": "Froth Coffeehouse greets you with a warm embrace of Scandinavian Culture. Savor your coffee, tea, soda, and bakery items there, or pre- order if you’re on the go.",
+    "locations": [
+      {
+        "address": "4711 45th St S, Ste 108, Fargo",
+        "phone": "701.532.2088"
+      }
+    ]
+  },
+  {
+    "name": "Juice Box",
+    "category": "COFFEE & TEA",
+    "description": "The Juice Box started as a pop-up shop at the Red River Market. Grab an immunity shot or juice cleanse package, or a single raw, cold-pressed juice bottle.",
+    "locations": [
+      {
+        "address": "3993 4th St E, West Fargo",
+        "phone": "701.936.0769"
+      }
+    ]
+  },
+  {
+    "name": "Juice It",
+    "category": "COFFEE & TEA",
+    "description": "Start with a 1oz shot of wheatgrass (equivalent to 2.5 pounds of raw organic veggies), and then try either their slimming coffee, acai power protein bowls, grass root juices, or smoothies.",
+    "locations": [
+      {
+        "address": "64 Broadway, Fargo",
+        "phone": "701.353.7160"
+      },
+      {
+        "address": "4302 13th Ave S, Fargo",
+        "phone": "701.353.7152"
+      }
+    ]
+  },
+  {
+    "name": "Kreps Family Corner Coffee",
+    "category": "COFFEE & TEA",
+    "description": "This family-owned coffee shop has great coffee and tea options for everyone. They also have fresh pie by the slice and farm-to-table canned items for sale from their farm.",
+    "locations": [
+      {
+        "address": "2119 13th Ave S, Fargo",
+        "phone": "701.200.1719"
+      }
+    ]
+  },
+  {
+    "name": "Ladybug Latte",
+    "category": "COFFEE & TEA",
+    "description": "Hissing latte steam and the crunching of coffee beans brings this drive-up coffee kiosk to life with plenty of hot drink varieties and completes each drink with a handwritten note.",
+    "locations": [
+      {
+        "address": "583 Main Ave E, West Fargo",
+        "phone": "701.200.9674"
+      }
+    ]
+  },
+  {
+    "name": "Moonrise Cafe",
+    "category": "COFFEE & TEA",
+    "description": "Moonrise Cafe is known for its homemade poptarts and gorgeous cakes, but it’s also a perfect spot for a coffee, breakfast burrito, and other baked goodies.",
+    "locations": [
+      {
+        "address": "111 Broadway N, Fargo",
+        "phone": "701.478.6626"
+      }
+    ]
+  },
+  {
+    "name": "Moxie Java",
+    "category": "COFFEE & TEA",
+    "description": "Regional coffee chain with house-made drinks and baked goods at The Lights and West Acres Mall. Try one of the Cafe Moaccino’s, a mix of ice cream and coffee.",
+    "locations": [
+      {
+        "address": "3150 Sheyenne St, West Fargo",
+        "phone": "701.532.1586"
+      },
+      {
+        "address": "West Acres Mall, 3902 13th Ave S, Fargo",
+        "phone": "701.282.4344"
+      }
+    ]
+  },
+  {
+    "name": "Roasted Rail Coffee House",
+    "category": "COFFEE & TEA",
+    "description": "Roasted Rail Coffee House, located in Dilworth’s Rail District, offers a cozy local spot for exceptional coffee, tea, Red Bull zingers, and fizzy and fresh Italian sodas.",
+    "locations": [
+      {
+        "address": "208 15th St NE, Dilworth",
+        "phone": "218.227.7029"
+      }
+    ]
+  },
+  {
+    "name": "Steep Me A Cup of Tea",
+    "category": "COFFEE & TEA",
+    "description": "Steep Me a Cup of Tea owners support Fargo’s tea drinkers, with over 100 flavors of loose leaf tea, local artists, and craftspeople with tea, tea accessories, and more.",
+    "locations": [
+      {
+        "address": "5498 51st Ave S, Fargo",
+        "phone": "701.412.2929"
+      }
+    ]
+  },
+  {
+    "name": "Teaberry",
+    "category": "COFFEE & TEA",
+    "description": "Sip a delicious juice or drink with interesting goodies like tapioca pearls and flavored popping bubbles on one of their comfy couches while enjoying the downtown view.",
+    "locations": [
+      {
+        "address": "119 Broadway N, Fargo",
+        "phone": "701.235.5036"
+      }
+    ]
+  },
+  {
+    "name": "Third Drop Coffee & Kitchen",
+    "category": "COFFEE & TEA",
+    "description": "Formerly Moxie Java, with the same great owners and baristas, is the reinvented Third Drop Coffee. Whipping up coffees, breakfast pastries, lunches, and more in Downtown Moorhead.",
+    "locations": [
+      {
+        "address": "115 4th St S, Moorhead",
+        "phone": "218.233.0900"
+      }
+    ]
+  },
+  {
+    "name": "Thunder Coffee",
+    "category": "COFFEE & TEA",
+    "description": "Locally owned with two locations focusing on community, quality coffee drinks, tea, and snacks. Thunder Coffee roasts its own beans and creates a mean cup of joe. Not only do they have a cozy location in Downtown West Fargo, but they also opened their second location in Brewhalla.",
+    "locations": [
+      {
+        "address": "300 Sheyenne St, #190, West Fargo",
+        "phone": "701.404.7743"
+      },
+      {
+        "address": "Brewhalla, 1702 1st Ave N, Fargo",
+        "phone": "000.000.0000"
+      }
+    ]
+  },
+  {
+    "name": "Twenty Below Coffee Co.",
+    "category": "COFFEE & TEA",
+    "description": "Twenty Below, a pioneer in Fargo’s craft coffee scene, roasts in-house. Savor pour-over coffee, daily baked goods, or cold brew at the city’s only bean-to-cup coffee shop.",
+    "locations": [
+      {
+        "address": "600 8th St S, Moorhead",
+        "phone": "701.566.0977"
+      },
+      {
+        "address": "14 Roberts St, Fargo",
+        "phone": "701.566.0977"
+      }
+    ]
+  },
+  {
+    "name": "Youngblood Coffee Roasters",
+    "category": "COFFEE & TEA",
+    "description": "Found in a vibey space right in Downtown Fargo with vinyl always playing. This grassroots operation serves West Coast-inspired coffee with nuanced, bright, and sweet flavors.",
+    "locations": [
+      {
+        "address": "623 2nd Ave N, Fargo",
+        "phone": "000.000.0000"
+      }
+    ]
+  },
+  {
+    "name": "Benedict’s Morning Heroes",
+    "category": "DINERS",
+    "description": "A modern diner serving up both the classics and crave- able new takes on old favorites. Their menu features breakfast, brunch, lunchtime fare, inventive pancakes, and more.",
+    "locations": [
+      {
+        "address": "3165 33rd St S, Fargo",
+        "phone": "701.532.4550"
+      }
+    ]
+  },
+  {
+    "name": "Deaner’s Diner",
+    "category": "DINERS",
+    "description": "Homestyle cooking just the way you like it! All-day breakfasts, patty melts, chicken strip baskets, and an omelet galore. Finish with a classic shake, malt, or slice of pie.",
+    "locations": [
+      {
+        "address": "405 Main Ave W, West Fargo",
+        "phone": "701.277.7062"
+      }
+    ]
+  },
+  {
+    "name": "Fry’n Pan",
+    "category": "DINERS",
+    "description": "The Fryn’ Pan serves 24/7. A huge menu of breakfast must- haves, sandwiches, burgers, and dinners. Plus, the fan- favorite salad bar, specialty senior menu, and gluten-free options.",
+    "locations": [
+      {
+        "address": "310 Main Ave, Ste 170, Fargo",
+        "phone": "701.293.9952"
+      },
+      {
+        "address": "2920 Hwy 10 E, Moorhead",
+        "phone": "218.236.0292"
+      }
+    ]
+  },
+  {
+    "name": "Kroll’s Diner",
+    "category": "DINERS",
+    "description": "Kroll’s is a 50s-style diner with German and American dishes. Try their homemade knoephla soup, fleischkuechle (seasoned ground beef in fried pastry), and Kuchen (German pastry).",
+    "locations": [
+      {
+        "address": "1033 45th St S, Fargo",
+        "phone": "701.492.2319"
+      }
+    ]
+  },
+  {
+    "name": "Marge’s Diner",
+    "category": "DINERS",
+    "description": "Serving breakfast, brunch, and lunch in Downtown Fargo, Marge’s Diner uses the Midwest Grandma aesthetic and serves comfort food dishes and a salad bar for a healthy lunch option.",
+    "locations": [
+      {
+        "address": "220 Broadway N, Fargo",
+        "phone": "701.526.0149"
+      }
+    ]
+  },
+  {
+    "name": "Randy’s Diner",
+    "category": "DINERS",
+    "description": "Known for their great food & friendly service, Randy’s has a full menu for breakfast, lunch, and dinner. Try one of their skillets or sandwiches with a side of cinnamon coffeecake.",
+    "locations": [
+      {
+        "address": "641 32nd Ave W, West Fargo",
+        "phone": "701.532.4000"
+      },
+      {
+        "address": "2130 University Dr S, Fargo",
+        "phone": "701.280.0414"
+      }
+    ]
+  },
+  {
+    "name": "The Shack on Broadway",
+    "category": "DINERS",
+    "description": "This cozy diner has earned the reputation for ‘Best Breakfast’ in Fargo. Locals flock here for massive, flavorful omelets (the Meat Lovers’ is a must-try), extra-large caramel rolls made fresh daily (while supplies last), and perfectly fluffy pancakes. Whether you’re in for a hearty start to your day or just craving some comfort food, the warm hospitality and unbeatable breakfast classics keep everyone coming back.",
+    "locations": [
+      {
+        "address": "3215 Broadway N, Fargo",
+        "phone": "701.356.2211"
+      }
+    ]
+  },
+  {
+    "name": "Blarney Stone Pub",
+    "category": "EUROPEAN",
+    "description": "This authentic Irish pub is perfect for Guinness along with your bangers and mash or Irish stew. Try their Irish nachos while enjoying drinks on the huge patio or right on Broadway.",
+    "locations": [
+      {
+        "address": "101 Broadway N, Fargo",
+        "phone": "701.478.8888"
+      },
+      {
+        "address": "1910 9th St E, West Fargo",
+        "phone": "701.532.1500"
+      }
+    ]
+  },
+  {
+    "name": "Michele’s Table",
+    "category": "EUROPEAN",
+    "description": "This neighborhood French bistro serves French food and coffee with a Midwest twist. Find the delicacies from scones and pastries to lunch specials and coffee drinks here.",
+    "locations": [
+      {
+        "address": "1414 12th Ave N, Ste J, Fargo",
+        "phone": "701.371.7610"
+      }
+    ]
+  },
+  {
+    "name": "Nichole’s Fine Pastry & Cafe",
+    "category": "EUROPEAN",
+    "description": "Head pastry chef Nichole cooks with local, organic ingredients on Downtown Fargo’s historic 8th Street corridor by crafting a menu of soups, sandwiches, quiches, and pastries.",
+    "locations": [
+      {
+        "address": "13 S 8th St, Fargo",
+        "phone": "701.232.6430"
+      },
+      {
+        "address": "Brewhalla, 1702 1st Ave N, Fargo",
+        "phone": "000.000.0000"
+      }
+    ]
+  },
+  {
+    "name": "Sons of Norway",
+    "category": "EUROPEAN",
+    "description": "The Kringen Lodge at Sons of Norway is a celebration of all things Nordic. From 11 a.m. to 1:30 p.m. on weekdays, enjoy lunch with a unique Norwegian flair, featuring hearty soups, flavorful sandwiches, traditional Nordic dishes, and delicious lefse.",
+    "locations": [
+      {
+        "address": "722 2nd Ave N, Fargo",
+        "phone": "701.232.9222"
+      }
+    ]
+  },
+  {
+    "name": "Wurst Bier Hall",
+    "category": "EUROPEAN",
+    "description": "These two locations have plenty of beer, sausages, sauerkraut, and even knoephla and borscht soups. Wurst is a great place to get some German food and is filled with long picnic-style tables for a fun atmosphere while you enjoy a boot of beer and Bavarian pretzels.",
+    "locations": [
+      {
+        "address": "630 1st Ave N, Fargo",
+        "phone": "701.478.2437"
+      },
+      {
+        "address": "3179 Bluestem Dr, West Fargo",
+        "phone": "701.532.0484"
+      }
+    ]
+  },
+  {
+    "name": "Himalayan Yak",
+    "category": "INDIAN",
+    "description": "Featuring a chaat bar of yogurt, chutney, spices, garbanzo beans, and vegetables, Himalayan Yak’s standard menu has popular street food from Nepal and India.",
+    "locations": [
+      {
+        "address": "1109 38th St S, Fargo",
+        "phone": "701.532.1052"
+      }
+    ]
+  },
+  {
+    "name": "India Palace",
+    "category": "INDIAN",
+    "description": "Drawing from north India, flavors are as varied as the country’s climate. From the tamer chicken tikka masala to the hot vindaloo, you can choose any curry how you like it.",
+    "locations": [
+      {
+        "address": "5050 13th Ave S, Ste 3, Fargo",
+        "phone": "701.356.6500"
+      }
+    ]
+  },
+  {
+    "name": "India Street Food Fargo",
+    "category": "INDIAN",
+    "description": "Funky, flavorful, fast, and fresh are all used to describe India Street Food Fargo. Street food inspired options like samosas, bowls, entrees like tandoori chicken and more.",
+    "locations": [
+      {
+        "address": "855 45th St S, Unit J, Fargo",
+        "phone": "701.281.8844"
+      }
+    ]
+  },
+  {
+    "name": "Passage to India",
+    "category": "INDIAN",
+    "description": "Passage to India, featured on Diners, Drive-ins, and Dives, is praised by Guy Fieri as an “authentic passage to Indian cuisine.” This local gem prepares all meals with naturally-raised Halal meat, ensuring both quality and authenticity in every bite.",
+    "locations": [
+      {
+        "address": "855 45th St S, Ste a3, Fargo",
+        "phone": "701.281.0277"
+      }
+    ]
+  },
+  {
+    "name": "Taj India",
+    "category": "INDIAN",
+    "description": "A modern twist to traditional Indian cuisine, they offer a vibrant menu filled with flavorful curries, freshly baked naan, and crispy samosas. In addition to classic dishes like palak paneer, other options reflect the diverse and rich flavors of Indian cooking.",
+    "locations": [
+      {
+        "address": "2877 45th St. S., Fargo",
+        "phone": "701.532.0705"
+      }
+    ]
+  },
+  {
+    "name": "84 Italian Steakhouse",
+    "category": "ITALIAN",
+    "description": "Tuscan-inspired cuisine on the second floor of the Radisson Blu. 84 Italian has a great selection of pasta featuring Cacio E Pepe, Lobster Linguini, and Arrabiata.",
+    "locations": [
+      {
+        "address": "Radisson Blu, 201 5th St N, Fargo",
+        "phone": "701.271.7717"
+      }
+    ]
+  },
+  {
+    "name": "Spaghetti Western Italian",
+    "category": "ITALIAN",
+    "description": "Spaghetti Western is housed on Broadway and serves high- quality Italian food at prices families can afford, including traditional sauces, imported cheeses, and homemade pasta.",
+    "locations": [
+      {
+        "address": "524 Broadway, Fargo",
+        "phone": "701.532.4699"
+      }
+    ]
+  },
+  {
+    "name": "Ziti’s Italian",
+    "category": "ITALIAN",
+    "description": "Ziti’s has gorgeous dishes like braised ribeye risotto, pappardelle ribanna, and an antipasto board. Plus, the “Sunday Gravy” is made from various meat cuts, sausage, and served over penne.",
+    "locations": [
+      {
+        "address": "3150 Sheyenne St S, West Fargo",
+        "phone": "701.532.0477"
+      }
+    ]
+  },
+  {
+    "name": "Fuji Hibachi Express and Poke Bowl",
+    "category": "JAPANESE/SUSHI",
+    "description": "Fuji Hibachi Express & Poke Bowl is an express-style Asian eatery featuring fast hibachi and poke-bowl options in a casual setting.",
+    "locations": [
+      {
+        "address": "2600 52nd Ave S, Fargo",
+        "phone": "701.532.3854"
+      }
+    ]
+  },
+  {
+    "name": "Ginza Ramen & Poke",
+    "category": "JAPANESE/SUSHI",
+    "description": "Located in the West Acres Mall, they serve Japanese-style ramen, with a rich overnight cooked broth, noodles, and a selection of toppings. They also serve Hawaiian poke bowls.",
+    "locations": [
+      {
+        "address": "3902 13th Ave S, Ste 812, Fargo",
+        "phone": "701.936.6764"
+      }
+    ]
+  },
+  {
+    "name": "Izumi Sushi & Hibachi",
+    "category": "JAPANESE/SUSHI",
+    "description": "Open for lunch and dinner, this sushi buffet serves a set-price lunch or dinner that includes all-you-can-eat tempura, udon, teriyaki, hibachi, sushi, sashimi, and chef’s special rolls.",
+    "locations": [
+      {
+        "address": "5675 26th Ave S, Ste 108, Fargo",
+        "phone": "701.356.8556"
+      },
+      {
+        "address": "5050 13th Ave S, Fargo",
+        "phone": "701.639.7016"
+      }
+    ]
+  },
+  {
+    "name": "Kobe’s Japanese Cuisine",
+    "category": "JAPANESE/SUSHI",
+    "description": "Kobe’s is the original hibachi restaurant in Fargo. Kobe’s is a great choice for a Japanese steakhouse. Experience fully as a personal chef prepares gourmet delicacies in front of you.",
+    "locations": [
+      {
+        "address": "4228 15th Ave S, Fargo",
+        "phone": "701.232.5623"
+      }
+    ]
+  },
+  {
+    "name": "Ninja Ramen Noodle",
+    "category": "JAPANESE/SUSHI",
+    "description": "The owners of Izumi Sushi and Mr. Wok Chinese will bring a new type of Asian food to this area of town: Ramen. Build your own bowl, or choose from poke or ramen specialties.",
+    "locations": [
+      {
+        "address": "816 24th Ave E, Ste. 104, West Fargo",
+        "phone": "701.639.7906"
+      }
+    ]
+  },
+  {
+    "name": "Osaka Sushi & Hibachi",
+    "category": "JAPANESE/SUSHI",
+    "description": "Known for its sushi, hibachi, steak, and seafood. Choose stir-fry ingredients, and watch it prepared in front of you, complete with flames, spatula tricks, and sake shots.",
+    "locations": [
+      {
+        "address": "1111 38th St S, Fargo",
+        "phone": "701.282.3888"
+      }
+    ]
+  },
+  {
+    "name": "Poke Bowl",
+    "category": "JAPANESE/SUSHI",
+    "description": "Poke Bowl serves Hawaiian- style Poke. Choose your base, then your poke, and then toppings. Plus, choose from Wasabi appetizers and entrees if Poke isn’t your vibe.",
+    "locations": [
+      {
+        "address": "560 2nd Ave N, Fargo",
+        "phone": "701.478.2442"
+      }
+    ]
+  },
+  {
+    "name": "Samurai Asian Fusion Cuisine & Sushi Bar",
+    "category": "JAPANESE/SUSHI",
+    "description": "A great selection of sushi rolls, sashimi, and teriyaki make up the Japanese section of the menu, but you can also find Chinese fried rice, curries, and Thai noodle dishes.",
+    "locations": [
+      {
+        "address": "1775 45th St S, Ste B, Fargo",
+        "phone": "701.356.8882"
+      }
+    ]
+  },
+  {
+    "name": "Slurp Ramen",
+    "category": "JAPANESE/SUSHI",
+    "description": "This may be the only place in town where it’s acceptable to slurp your food. Slurp Ramen offers varieties of ramen, noodle soups, and appetizers for a quick Japanese meal.",
+    "locations": [
+      {
+        "address": "414 Broadway N, Fargo",
+        "phone": "701.232.3380"
+      }
+    ]
+  },
+  {
+    "name": "Sushi Burrito Cafe",
+    "category": "JAPANESE/SUSHI",
+    "description": "Sushi Burrito Café puts love and careful attention into each item, wrapping the freshest sushi ingredients into burrito form for a new on-the-go version of your favorite meal. Their menu also includes classic sushi, poke bowls, and steamed dumplings.",
+    "locations": [
+      {
+        "address": "623 NP Ave, Fargo",
+        "phone": "701.781.3820"
+      }
+    ]
+  },
+  {
+    "name": "Wasabi Sushi & Asian Grill",
+    "category": "JAPANESE/SUSHI",
+    "description": "Wasabi serves modern, innovative sushi and other Japanese foods focused on creativity, texture, and flavor across the street from Broadway Square. This is slow food, packed into small bites, with big flavors, made to enjoy without the rush.",
+    "locations": [
+      {
+        "address": "560 2nd Ave N, Fargo",
+        "phone": "701.478.2442"
+      }
+    ]
+  },
+  {
+    "name": "Cafe Aladdin",
+    "category": "MEDITERRANEAN",
+    "description": "Cafe Aladdin brings Greek and Middle Eastern cuisine to Fargo with bold flavors and fresh ingredients. Indulge in homemade hummus, freshly baked pita, and creamy Baba Ghanoush, all paired perfectly with classic Greek fixings. This local favorite offers an authentic, vibrant menu that highlights the best of Mediterranean dishes, making it the perfect spot to enjoy a healthy and flavorful meal with friends or family.",
+    "locations": [
+      {
+        "address": "1609 32nd Ave S, Fargo",
+        "phone": "701.232.4200"
+      }
+    ]
+  },
+  {
+    "name": "Ishtar Mediterranean Cuisine",
+    "category": "MEDITERRANEAN",
+    "description": "Ishtar serves up over 30 flavorful options, from classic gyros and kebabs to fresh, modern takes on Mediterranean cuisine. With dishes like chicken kebabs, fattoush salad, and chicken or beef shawarma, the menu offers something for everyone who loves bold, fresh flavors.",
+    "locations": [
+      {
+        "address": "68 Broadway N, Fargo",
+        "phone": "701.212.4930"
+      }
+    ]
+  },
+  {
+    "name": "Newroz Kebab",
+    "category": "MEDITERRANEAN",
+    "description": "Newroz Kebab specializes in the bold flavors of Kurdish cuisine, blending traditional dishes from Turkey, Iraq, Iran, and Syria. With consistently fresh ingredients, the menu features mouthwatering options, including perfectly grilled kebabs, stews, and shawarma.",
+    "locations": [
+      {
+        "address": "2501 8th St S, Moorhead",
+        "phone": "218.227.5019"
+      }
+    ]
+  },
+  {
+    "name": "Reese & Riley’s Olive Oil & Bistro Bar",
+    "category": "MEDITERRANEAN",
+    "description": "Quaint bistro setting in south Moorhead, with a menu highlighting their global selection of premium extra virgin olive oils (EVOO) and balsamic vinegars. Whether you’re dining in or shopping for unique oils, this cozy spot offers a one-of-a-kind experience.",
+    "locations": [
+      {
+        "address": "935 37th Ave S, Moorhead",
+        "phone": "218.303.1279"
+      }
+    ]
+  },
+  {
+    "name": "Acapulco Mexican Restaurant",
+    "category": "MEXICAN",
+    "description": "Acapulco is a local favorite in Fargo, known for serving up delicious, authentic Mexican dishes. The vibrant interior, filled with brightly colored booths, creates a lively atmosphere, while the spacious patio is perfect for enjoying a refreshing margarita on a warm day. Whether you’re craving tacos, enchiladas, or a classic Mexican feast, Acapulco delivers bold flavors and a fun dining experience that keeps locals coming back.",
+    "locations": [
+      {
+        "address": "1150 36th St S, Fargo",
+        "phone": "701.297.0355"
+      }
+    ]
+  },
+  {
+    "name": "Azteca Tacos",
+    "category": "MEXICAN",
+    "description": "Simple, fresh Mexican food within the International Market Plaza near Downtown Fargo. This cozy spot serves up authentic Mexican dishes, including mouthwatering carne asada burritos, flavorful barbacoa tacos, and other classic options.",
+    "locations": [
+      {
+        "address": "1345 Main Ave, Fargo",
+        "phone": "701.212.1996"
+      }
+    ]
+  },
+  {
+    "name": "Casa Mexico Restaurant",
+    "category": "MEXICAN",
+    "description": "Casa Mexico aims to bring some more spice to South Fargo. Freshly-made Mexican dishes will fill the menu, enjoy the table service or hop in line at the counter for a quicker option.",
+    "locations": [
+      {
+        "address": "4900 13th Ave S, Ste 1, Fargo",
+        "phone": "701.639.2158"
+      }
+    ]
+  },
+  {
+    "name": "El Agave Mexican Restaurant",
+    "category": "MEXICAN",
+    "description": "Begin with fresh guacamole, then enjoy classics like enchiladas or tamales. At El Agave, you’ll find authentic flavors, generous portions, and great value.",
+    "locations": [
+      {
+        "address": "2581 45th St S, Fargo",
+        "phone": "701.356.2195"
+      }
+    ]
+  },
+  {
+    "name": "El Patrón",
+    "category": "MEXICAN",
+    "description": "El Patron is the newest spot for authentic Mexican food. Enjoy rotating lunch combos or dig into favorites like enchiladas and burritos.",
+    "locations": [
+      {
+        "address": "2511 Kirsten Ln S, Fargo",
+        "phone": "701.532.0730"
+      }
+    ]
+  },
+  {
+    "name": "El Taco Rojo",
+    "category": "MEXICAN",
+    "description": "El Taco Rojo serves authentic Mexican tacos packed with traditional flavor. With a wide variety to choose from, it’s the perfect stop during a day of shopping.",
+    "locations": [
+      {
+        "address": "West Acres Mall, 3902 13th Ave S, Fargo",
+        "phone": "701.532.2548"
+      }
+    ]
+  },
+  {
+    "name": "Guadalajara Mexican Restaurant",
+    "category": "MEXICAN",
+    "description": "A local restaurateur brings the bold flavors of Guadalajara to Fargo with a menu full of Mexican favorites—fajitas, enchiladas, quesadillas, burritos, tacos, and more.",
+    "locations": [
+      {
+        "address": "1324 25th Ave S, Fargo",
+        "phone": "701.532.0200"
+      }
+    ]
+  },
+  {
+    "name": "La Unica",
+    "category": "MEXICAN",
+    "description": "This authentic Mexican eatery features fresh pan dulce on Fridays, homemade tortillas by the dozen twice a week, and a menu of delicious tacos, gorditas, and tamales.",
+    "locations": [
+      {
+        "address": "2615 12th Ave S, Moorhead",
+        "phone": "218.236.1075"
+      },
+      {
+        "address": "1531 S University Dr, Fargo",
+        "phone": "701.829.5850"
+      }
+    ]
+  },
+  {
+    "name": "Las Palmas Mexican Bar & Grill",
+    "category": "MEXICAN",
+    "description": "Las Palmas serves fresh, authentic Mexican cuisine with stunning downtown views and a full bar featuring craft cocktails and margaritas. A perfect spot for evenings out.",
+    "locations": [
+      {
+        "address": "64 Broadway N, Fargo",
+        "phone": "701.970.2133"
+      }
+    ]
+  },
+  {
+    "name": "Mango’s Mexican & American Grill",
+    "category": "MEXICAN",
+    "description": "Locals rave that Mango’s Mexican Grill serves the most authentic Mexican food in its new location in Moorhead. Their menu offers specialties like Pescado a la Plancha, Molcajetes, and other rotating specials highlighting bold, fresh Mexican flavors.",
+    "locations": [
+      {
+        "address": "3333 US-10 Frontage Rd, Moorhead",
+        "phone": "218.512.0148"
+      }
+    ]
+  },
+  {
+    "name": "Paradiso",
+    "category": "MEXICAN",
+    "description": "‘Chips are free, dinner extra’, Paradiso is a well-known local favorite. Try delicious margarita flavors, large plates of steaming Mexican food, and signature fried ice cream.",
+    "locations": [
+      {
+        "address": "801 38th St S, Fargo",
+        "phone": "701.282.5747"
+      }
+    ]
+  },
+  {
+    "name": "Plaza Azteca",
+    "category": "MEXICAN",
+    "description": "A contemporary, authentic take on Mexican Cuisine, Plaza Azteca serves up fresh dishes like Mahi Mahi tacos and Chile Verde. Also, enjoy hand-smashed guacamole made at your table.",
+    "locations": [
+      {
+        "address": "5081 Charles Way S, Fargo",
+        "phone": "701.532.1273"
+      },
+      {
+        "address": "5505 28th Ave S, Fargo",
+        "phone": "701.212.1996"
+      }
+    ]
+  },
+  {
+    "name": "Puerto Vallarta",
+    "category": "MEXICAN",
+    "description": "At Puerto Vallarta, the inviting staff showcase the true spirit of Mexico while serving classics and specialties like molcajete, tiger shrimp street tacos, and more.",
+    "locations": [
+      {
+        "address": "4323 45th St S, Ste 101, Fargo",
+        "phone": "701.205.3574"
+      }
+    ]
+  },
+  {
+    "name": "Red Pepper",
+    "category": "MEXICAN",
+    "description": "A laid-back taqueria serving their famous taco-meat grinders, casual Mexican eats & American favorites. Voted “The Best Late Night Food in the United States” by Esquire magazine.",
+    "locations": [
+      {
+        "address": "1105 19th Ave N, Fargo",
+        "phone": "701.205.1702"
+      }
+    ]
+  },
+  {
+    "name": "Taco Shop",
+    "category": "MEXICAN",
+    "description": "Serving fast Mexican food like tostadas, tacos, burritos, chimichangas, and even breakfast burritos served all day since 1961. Add the “Killer Sauce” to any dish for extra spice.",
+    "locations": [
+      {
+        "address": "1825 University Dr S, Fargo",
+        "phone": "701.235.8628"
+      },
+      {
+        "address": "4474 23rd Ave S, Ste A, Fargo",
+        "phone": "701.232.7734"
+      }
+    ]
+  },
+  {
+    "name": "Tacos Trompo",
+    "category": "MEXICAN",
+    "description": "Expect authentic Mexican flavors. Try a street taco with a choice of al pastor, carne asada, chorizo, and a specialty fourth option: suadero, a thin cut of marinated beef.",
+    "locations": [
+      {
+        "address": "4265 45th St S, Fargo",
+        "phone": "701.282.2473"
+      }
+    ]
+  },
+  {
+    "name": "Tee’s Tacos",
+    "category": "MEXICAN",
+    "description": "Tacos aren’t just for Tuesdays! Located in downtown, Tee’s offers up NDN Tacos made with fry bread as well as their house special Indigi Bowls.",
+    "locations": [
+      {
+        "address": "1203 1st Ave N, Fargo",
+        "phone": "701.429.4920"
+      }
+    ]
+  },
+  {
+    "name": "Vaqueros Taqueria",
+    "category": "MEXICAN",
+    "description": "Pick from their huge menu full of Mexican food favorites like the quesabirrias plate, Hawaiian fajitas, or Huevos options. Plus, they have a full kids’ menu and desserts for just $5.",
+    "locations": [
+      {
+        "address": "3402 13th Ave S, Ste I, Fargo",
+        "phone": "701.232.0645"
+      }
+    ]
+  },
+  {
+    "name": "Vinyl Taco",
+    "category": "MEXICAN",
+    "description": "Vinyl Taco stands out with Mexican street food and nonstop music vibes. Menus arrive on record albums while vinyl spins in the background. Dig into classic or specialty tacos.",
+    "locations": [
+      {
+        "address": "520 1st Ave N, Fargo",
+        "phone": "701.365.8226"
+      }
+    ]
+  },
+  {
+    "name": "Athena’s Pizza",
+    "category": "PIZZA",
+    "description": "Athena’s Pizza is a family-owned, Greek-style pizzeria rooted in tradition awith scratch made pizzas, subs, fresh salads, and familiar comfort foods. They focus on quality ingredients, inspired by classic neighborhood pizza shops where everyone feels like family.",
+    "locations": [
+      {
+        "address": "3402 13th Ave S, Ste A, Fargo",
+        "phone": "701.540.0858"
+      }
+    ]
+  },
+  {
+    "name": "Blackbird Woodfire",
+    "category": "PIZZA",
+    "description": "This cozy pizzeria right in Downtown Fargo was featured on Diners, Drive-Ins, and Dives. With local ingredients, an iconic wood-fired oven bakes pizzas in as little as 90 seconds, giving an idealcrust texture. Their second shop is in Brewhalla.",
+    "locations": [
+      {
+        "address": "206 Broadway, Fargo",
+        "phone": "701.478.1968"
+      },
+      {
+        "address": "The Bird, Brewhalla, 1702 1st Ave N, Fargo",
+        "phone": "000.000.0000"
+      }
+    ]
+  },
+  {
+    "name": "Boss’ Pizza and Chicken",
+    "category": "PIZZA",
+    "description": "Regional pizzeria chain serving creative pies, plus broasted chicken & pasta. Enjoy daily specials in a low-key setting. Open until 3 am on weekdays and 4 am on weekends.",
+    "locations": [
+      {
+        "address": "228 Broadway, Fargo",
+        "phone": "701.997.2677"
+      }
+    ]
+  },
+  {
+    "name": "Deek’s Pizza",
+    "category": "PIZZA",
+    "description": "No-frills, open-late pizzeria turning out pies, wings, and breadsticks for counter service take out or delivery at a reasonable cost. Order from two local locations today.",
+    "locations": [
+      {
+        "address": "702 N University Dr, Fargo",
+        "phone": "701.235.0708"
+      },
+      {
+        "address": "635 32nd Ave E, Ste 132, West Fargo",
+        "phone": "701.235.0708"
+      }
+    ]
+  },
+  {
+    "name": "Duane’s House of Pizza",
+    "category": "PIZZA",
+    "description": "A town staple for over 50+ years, pies are made with fresh dough and a blend of “Duane’s Flavor” seasoning. Choose from house specials, build- your-own, or even a bucket of chicken.",
+    "locations": [
+      {
+        "address": "1621 University Dr S, #101 Fargo",
+        "phone": "701.232.8908"
+      }
+    ]
+  },
+  {
+    "name": "Happy Joe’s Pizza and Ice Cream Parlor",
+    "category": "PIZZA",
+    "description": "A beloved local favorite is back in Fargo, and longtime fans couldn’t be happier. With a legacy spanning over 50 years, this iconic pizza parlor is best known for its legendary taco pizza—a true regional classic. The menu also features signature pizzas, sandwiches, pasta, and ice cream sundaes. Whether you’re a nostalgic regular or trying it for the first time, there’s something for everyone. This location is take-out only.",
+    "locations": [
+      {
+        "address": "2911 45th St S, Fargo",
+        "phone": "701.293.5252"
+      }
+    ]
+  },
+  {
+    "name": "Pizza Patrol",
+    "category": "PIZZA",
+    "description": "A local favorite for fast, reliable delivery without sacrificing flavor. Known for pizza that doesn’t taste “delivered,” they offer everything from deep-dish and thin-crust to unique breakfast pies—making them a go-to spot after a night out or any time of day.",
+    "locations": [
+      {
+        "address": "104 4th St S, Moorhead",
+        "phone": "701.241.9000"
+      }
+    ]
+  },
+  {
+    "name": "Rhombus Guys",
+    "category": "PIZZA",
+    "description": "Funky flavors, and a great rooftop patio, set this place apart. Try one of their in-house brews and unbelievable pizzas like the Rockafeller (alfredo, bacon, shrimp) or Girlfriend Diavolo (spicy marinara, chicken, jalapeno, pineapple).",
+    "locations": [
+      {
+        "address": "606 Main Ave, Fargo",
+        "phone": "701.540.4534"
+      }
+    ]
+  },
+  {
+    "name": "Sammy’s Pizza",
+    "category": "PIZZA",
+    "description": "One of the oldest pizza joints in Fargo, located right across from the Fargo Theatre, Sammy’s serves classic pies cut into squares and other Italian staples. When you walk in, they take your order and run the dough (made from scratch daily) through the roller, then sauce it up and top it with fresh ingredients. You can build your own or choose from one of their specialty options. Plus, grab a frozen pizza on your way out.",
+    "locations": [
+      {
+        "address": "301 Broadway, Fargo",
+        "phone": "701.235.5331"
+      }
+    ]
+  },
+  {
+    "name": "Slap Shot Pizza",
+    "category": "PIZZA",
+    "description": "Slap Shot has some great pizza, subs, and even Nine Dragons Chinese. Stop in for quick service in the restaurant or the drive-thru or order for take-out/delivery.",
+    "locations": [
+      {
+        "address": "4615 23rd Ave S, Fargo",
+        "phone": "701.232.2411"
+      }
+    ]
+  },
+  {
+    "name": "Spicy Pie",
+    "category": "PIZZA",
+    "description": "A notorious favorite among college students for late-night pizza and snacks, Spicy Pie brings you New York style pies, grinders, wings, and Mexican food. They hand toss their pizzas, smother them in Saputo cheese and use 4 Alta Cucina tomatoes in their sauce.",
+    "locations": [
+      {
+        "address": "322 Broadway N, Fargo",
+        "phone": "701.356.7437"
+      }
+    ]
+  },
+  {
+    "name": "LeeLa Thai x Sushi",
+    "category": "THAI",
+    "description": "Leela Thai is consistently considered one of the best Thai spots in Fargo. Start your meal with a Thai iced tea before moving on to a delicious starter like summer rolls. Then, choose Pad Thai, Pad Cashew, or their new sushi to experience Thailand.",
+    "locations": [
+      {
+        "address": "1450 25th St S, Fargo",
+        "phone": "701.235.5795"
+      }
+    ]
+  },
+  {
+    "name": "Sirirath Thai House",
+    "category": "THAI",
+    "description": "From rich and aromatic curries to the irresistible Basil drunken noodles and savory Ginger Duck, every dish is crafted with fresh ingredients and traditional spices. Whether you’re a fan of spicy heat or milder flavors, the true taste of Thailand is served.",
+    "locations": [
+      {
+        "address": "749 23rd Ave E, Unit D, West Fargo",
+        "phone": "701.532.1692"
+      }
+    ]
+  },
+  {
+    "name": "Thai Orchid",
+    "category": "THAI",
+    "description": "Aimed to prepare food like you would find in Chiangmai, Bangkok, or Phuket. This family-owned business has authentic Pad Thais, curries, and wontons all fresh and spiced to perfection.",
+    "locations": [
+      {
+        "address": "110 Main Ave E, West Fargo",
+        "phone": "701.532.3211"
+      }
+    ]
+  },
+  {
+    "name": "Thai Street Food",
+    "category": "THAI",
+    "description": "Thai Street Food serves Thai- style curry, rice, and stir-fried noodle dishes. They do only a few classic Thai Street food dishes and do them very well, similar to Thai home-cooked meals.",
+    "locations": [
+      {
+        "address": "West Acres Mall, 3902 13th Ave S, Ste 1832, Fargo",
+        "phone": "701.639.6225"
+      }
+    ]
+  },
+  {
+    "name": "ThaiKota",
+    "category": "THAI",
+    "description": "Thaikota provides a new food experience. Enjoy favorites like Pad Thai and Spring Rolls, or try something new like Ka Naa Moo Krob (pork belly with broccoli and spicy sauce).",
+    "locations": [
+      {
+        "address": "1201 1st Ave N, Fargo",
+        "phone": "701.212.4851"
+      }
+    ]
+  },
+  {
+    "name": "Bakehouse 23",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "208 Roberts Alley N, Fargo",
+        "phone": "701.532.0292"
+      }
+    ]
+  },
+  {
+    "name": "Black Cat Bakery",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "801 Main Ave, Suite 102, Moorhead",
+        "phone": "218.512.0117"
+      }
+    ]
+  },
+  {
+    "name": "Black Coffee and Waffle Bar",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "550 2nd Ave N, Fargo",
+        "phone": "701.566.8749"
+      }
+    ]
+  },
+  {
+    "name": "Boppa’s Bagels",
+    "category": "TREATS",
+    "description": "Choose from 30 types of bagels baked fresh daily and 18 flavors of cream cheese in this killer bagel shop. Try a hot breakfast sandwich, deli sandwich, or their classic bagel.",
+    "locations": [
+      {
+        "address": "3051 25th St S, Fargo",
+        "phone": "701.241.7800"
+      },
+      {
+        "address": "3251 Seter Parkway, Ste 117, Fargo",
+        "phone": "701.478.7800"
+      }
+    ]
+  },
+  {
+    "name": "Buddy’s Parfait",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "410 19th St S, Moorhead",
+        "phone": "218.236.4982"
+      }
+    ]
+  },
+  {
+    "name": "Carol Widman’s",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "4325 13th Ave S, Fargo",
+        "phone": "701.281.8664"
+      }
+    ]
+  },
+  {
+    "name": "Duchessa Gelato",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "Brewhalla, 1702 1st Ave N, Fargo",
+        "phone": "000.000.0000"
+      }
+    ]
+  },
+  {
+    "name": "Jen’s Bakery",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "5050 Timber Pkwy S, Ste 108, Fargo",
+        "phone": "701.532.1386"
+      }
+    ]
+  },
+  {
+    "name": "Kone’s Kreamery",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "1650 45th St S, Ste 120, Fargo",
+        "phone": "701.532.1314"
+      }
+    ]
+  },
+  {
+    "name": "Lundy’s Ice Cream",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "3150 Sheyenne St, Ste 160, West Fargo",
+        "phone": "701.532.3838"
+      }
+    ]
+  },
+  {
+    "name": "Mehl’s Bakery & Deli",
+    "category": "TREATS",
+    "description": "Everything at the Mehl family’s bakery is gluten- free with their own superb flour. Many of their bakery items can be made to order dairy-free, nut-free, vegan, soy-free, and sugar-free.",
+    "locations": [
+      {
+        "address": "1404 33rd St SW, Ste H, Fargo",
+        "phone": "701.205.4174"
+      }
+    ]
+  },
+  {
+    "name": "Mehl’s Gluten Free Bakery",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "1404 33rd St SW, Suite H, Fargo",
+        "phone": "701.205.4174"
+      }
+    ]
+  },
+  {
+    "name": "Michele’s Table",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "1414 12th Ave N, Suite J, Fargo",
+        "phone": "701.371.7610"
+      }
+    ]
+  },
+  {
+    "name": "Nichole’s Fine Pastry & Café",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "13 South 8th St, Fargo",
+        "phone": "701.232.6430"
+      },
+      {
+        "address": "Brewhalla, 1702 1st Ave N, Fargo",
+        "phone": "701.232.6430"
+      }
+    ]
+  },
+  {
+    "name": "Sandy’s Donuts",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "300 Broadway, Fargo",
+        "phone": "701.281.0430"
+      },
+      {
+        "address": "4215 45th St S, Fargo",
+        "phone": "701.281.0430"
+      },
+      {
+        "address": "301 Main Ave W, West Fargo",
+        "phone": "701.281.0430"
+      }
+    ]
+  },
+  {
+    "name": "Scoop N Dough Candy Co.",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "4600 32nd Ave S, Fargo",
+        "phone": "701.639.7152"
+      }
+    ]
+  },
+  {
+    "name": "Sifted and Sweet Baking Co.",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "800 Holiday Dr, Ste 176, Moorhead",
+        "phone": "218.303.7227"
+      }
+    ]
+  },
+  {
+    "name": "Sweet Dreams Confections",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "4101 13th Ave S, Suite 1000, Fargo",
+        "phone": "701.297.9338"
+      }
+    ]
+  },
+  {
+    "name": "Tea & Crepe Café",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "72 Broadway N, Fargo",
+        "phone": "701.540.6737"
+      }
+    ]
+  },
+  {
+    "name": "The Original Moorhead Dairy Queen",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "24 8th St S, Moorhead",
+        "phone": "218.233.3221"
+      }
+    ]
+  },
+  {
+    "name": "The Silver Lining Creamery",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "123 Broadway N, Fargo",
+        "phone": "701.532.0961"
+      }
+    ]
+  },
+  {
+    "name": "Yeobo Sweet Shop",
+    "category": "TREATS",
+    "description": "",
+    "locations": [
+      {
+        "address": "Brewhalla, 1702 1st Ave N, Fargo",
+        "phone": "701.388.1130"
+      }
+    ]
+  },
+  {
+    "name": "Jade Dragon",
+    "category": "VIETNAMESE",
+    "description": "Like many Chinese restaurants, the Jade Dragon has an extensive menu so you’ll have plenty of options, both meat and vegetarian. They also serve Vietnamese dishes, including pho.",
+    "locations": [
+      {
+        "address": "1015 Main Ave, Fargo",
+        "phone": "701.293.0152"
+      }
+    ]
+  },
+  {
+    "name": "Le’s Banh Mi",
+    "category": "VIETNAMESE",
+    "description": "Providing quality consistent food that tastes great every single time, Le’s specializes in serving up traditional Banh Mi sandwiches and Asian comfort dishes like rice noodles along with classic sides like spring rolls and sticky rice balls.",
+    "locations": [
+      {
+        "address": "833 24th Ave E, West Fargo",
+        "phone": "701.532.1924"
+      }
+    ]
+  },
+  {
+    "name": "Pho D’licious",
+    "category": "VIETNAMESE",
+    "description": "Pho D’licious specializes in all flavors of Pho, a traditional type of Vietnamese soup with other Vietnamese offerings. Order a combo or create your own pho with broth and proteins.",
+    "locations": [
+      {
+        "address": "623 NP Ave, Fargo",
+        "phone": "701.532.2225"
+      }
+    ]
+  },
+  {
+    "name": "Pho Thien Kim Vietnamese Noodle House",
+    "category": "VIETNAMESE",
+    "description": "This Vietnamese Noodle Soup House menu has several takes on hearty Pho, rice, noodles, rolls, plus several varieties of boba and milk teas.",
+    "locations": [
+      {
+        "address": "1414 12th Ave N, Unit B, Fargo",
+        "phone": "701.540.4998"
+      }
+    ]
+  },
+  {
+    "name": "Pho Titi Vietnamese Cuisine",
+    "category": "VIETNAMESE",
+    "description": "Pho TiTi offers a warm and inviting dine-in restaurant setting where you can enjoy delicious Vietnamese and Asian cuisine.",
+    "locations": [
+      {
+        "address": "3017 13th Ave S, Fargo",
+        "phone": "701.491.3777"
+      }
+    ]
+  }
+];
+
+    const STORAGE_KEY = "fmRestaurantPickerState.v2";
+    const state = loadState();
+    let currentChoice = null;
+    let history = [];
+
+    const els = {
+      restaurantCount: document.getElementById("restaurantCount"),
+      categoryCount: document.getElementById("categoryCount"),
+      locationCount: document.getElementById("locationCount"),
+      visibleCount: document.getElementById("visibleCount"),
+      categorySelect: document.getElementById("categorySelect"),
+      citySelect: document.getElementById("citySelect"),
+      searchInput: document.getElementById("searchInput"),
+      rollButton: document.getElementById("rollButton"),
+      randomCategoryButton: document.getElementById("randomCategoryButton"),
+      clearFiltersButton: document.getElementById("clearFiltersButton"),
+      categoryChips: document.getElementById("categoryChips"),
+      blockRestaurantInput: document.getElementById("blockRestaurantInput"),
+      restaurantNames: document.getElementById("restaurantNames"),
+      addBlockedRestaurantButton: document.getElementById("addBlockedRestaurantButton"),
+      resetBlocksButton: document.getElementById("resetBlocksButton"),
+      blockedRestaurantTags: document.getElementById("blockedRestaurantTags"),
+      resultCard: document.getElementById("resultCard"),
+      restaurantList: document.getElementById("restaurantList"),
+      listCount: document.getElementById("listCount"),
+      historyPanel: document.getElementById("historyPanel"),
+      historyList: document.getElementById("historyList")
+    };
+
+    function titleCaseCategory(category) {
+      return category
+        .split(" ")
+        .map(part => part.includes("/")
+          ? part.split("/").map(piece => piece.charAt(0) + piece.slice(1).toLowerCase()).join("/")
+          : part.charAt(0) + part.slice(1).toLowerCase())
+        .join(" ")
+        .replace("And", "and");
+    }
+
+    function getCategories() {
+      return [...new Set(RESTAURANTS.map(r => r.category))].sort();
+    }
+
+    function getCities() {
+      const cities = new Set();
+      RESTAURANTS.forEach(r => r.locations.forEach(loc => {
+        const address = loc.address || "";
+        ["Fargo", "West Fargo", "Moorhead", "Dilworth"].forEach(city => {
+          if (address.toLowerCase().includes(city.toLowerCase())) cities.add(city);
+        });
+      }));
+      return [...cities].sort((a, b) => a.localeCompare(b));
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        return {
+          selectedCategory: saved.selectedCategory || "",
+          selectedCity: saved.selectedCity || "",
+          searchText: saved.searchText || "",
+          blockedCategories: new Set(saved.blockedCategories || []),
+          blockedRestaurants: new Set(saved.blockedRestaurants || [])
         };
+      } catch {
+        return { selectedCategory: "", selectedCity: "", searchText: "", blockedCategories: new Set(), blockedRestaurants: new Set() };
+      }
+    }
 
-        function filterOptions(inputElement, options, dropdownOptionsElement) {
-            const filter = inputElement.value.toLowerCase();
-            dropdownOptionsElement.innerHTML = '';
-            const filteredOptions = options.filter(option => option.toLowerCase().includes(filter));
-            filteredOptions.forEach(option => {
-                const optionDiv = document.createElement('div');
-                optionDiv.textContent = option;
-                optionDiv.onclick = () => {
-                    updateSelectedItems(inputElement, dropdownOptionsElement, option);
-                };
-                dropdownOptionsElement.appendChild(optionDiv);
-            });
-            dropdownOptionsElement.style.display = filteredOptions.length > 0 ? 'block' : 'none';
-        }
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        selectedCategory: state.selectedCategory,
+        selectedCity: state.selectedCity,
+        searchText: state.searchText,
+        blockedCategories: [...state.blockedCategories],
+        blockedRestaurants: [...state.blockedRestaurants]
+      }));
+    }
 
-        function updateSelectedItems(inputElement, dropdownOptionsElement, value) {
-            const selectedDivId = inputElement.id === 'blockTypesInput' ? 'blockedTypes' : 'blockedRestaurants';
-            const selectedContainer = document.getElementById(selectedDivId);
-            if (!selectedContainer.querySelector(`[data-value="${value}"]`)) {
-                const blockDiv = document.createElement('div');
-                blockDiv.textContent = value;
-                blockDiv.setAttribute('data-value', value);
-                blockDiv.onclick = () => {
-                    selectedContainer.removeChild(blockDiv);
-                };
-                selectedContainer.appendChild(blockDiv);
-            }
-            inputElement.value = '';
-            dropdownOptionsElement.style.display = 'none';
-        }
+    function normalize(text) {
+      return (text || "").toString().toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
+    }
 
-        function clearSelections(inputId, dropdownId, blockedId) {
-            const inputElement = document.getElementById(inputId);
-            const dropdownOptionsElement = document.getElementById(dropdownId);
-            const blockedElement = document.getElementById(blockedId);
+    function restaurantMatchesSearch(restaurant, query) {
+      if (!query) return true;
+      const haystack = normalize([
+        restaurant.name,
+        restaurant.category,
+        restaurant.description,
+        ...restaurant.locations.flatMap(loc => [loc.address, loc.phone])
+      ].join(" "));
+      return normalize(query).split(/\s+/).filter(Boolean).every(word => haystack.includes(word));
+    }
 
-            inputElement.value = '';
-            blockedElement.innerHTML = '';
-        }
+    function restaurantInCity(restaurant, city) {
+      if (!city) return true;
+      return restaurant.locations.some(loc => normalize(loc.address).includes(normalize(city)));
+    }
 
-        function setupDropdown(inputId, options, dropdownId) {
-            const inputElement = document.getElementById(inputId);
-            const dropdownOptionsElement = document.getElementById(dropdownId);
+    function getEligibleRestaurants() {
+      return RESTAURANTS.filter(restaurant => {
+        if (state.selectedCategory && restaurant.category !== state.selectedCategory) return false;
+        if (state.blockedCategories.has(restaurant.category)) return false;
+        if (state.blockedRestaurants.has(restaurant.name)) return false;
+        if (!restaurantInCity(restaurant, state.selectedCity)) return false;
+        if (!restaurantMatchesSearch(restaurant, state.searchText)) return false;
+        return true;
+      });
+    }
 
-            inputElement.addEventListener('input', () => {
-                filterOptions(inputElement, options, dropdownOptionsElement);
-            });
+    function fillSelect(select, options, selected, allLabel) {
+      select.innerHTML = "";
+      const allOption = new Option(allLabel, "");
+      select.appendChild(allOption);
+      options.forEach(value => select.appendChild(new Option(titleCaseCategory(value), value)));
+      select.value = selected;
+    }
 
-            inputElement.addEventListener('focus', () => {
-                filterOptions(inputElement, options, dropdownOptionsElement);
-            });
+    function init() {
+      const categories = getCategories();
+      fillSelect(els.categorySelect, categories, state.selectedCategory, "Any category");
+      fillSelect(els.citySelect, getCities(), state.selectedCity, "Any city");
+      els.searchInput.value = state.searchText;
 
-            document.addEventListener('click', (e) => {
-                if (!dropdownOptionsElement.contains(e.target) && e.target !== inputElement) {
-                    dropdownOptionsElement.style.display = 'none';
-                }
-            });
-        }
+      RESTAURANTS.forEach(restaurant => {
+        const option = document.createElement("option");
+        option.value = restaurant.name;
+        els.restaurantNames.appendChild(option);
+      });
 
-        setupDropdown('blockTypesInput', types, 'blockTypesOptions');
-        setupDropdown('blockRestaurantsInput', Object.keys(restaurants), 'blockRestaurantsOptions');
+      els.restaurantCount.textContent = RESTAURANTS.length;
+      els.categoryCount.textContent = categories.length;
+      els.locationCount.textContent = RESTAURANTS.reduce((sum, restaurant) => sum + restaurant.locations.length, 0);
 
-        function pickRestaurant() {
-            const restaurantType = document.getElementById('restaurantType').value;
-            const blockTypes = Array.from(document.getElementById('blockedTypes').children).map(div => div.getAttribute('data-value'));
-            const blockRestaurants = Array.from(document.getElementById('blockedRestaurants').children).map(div => div.getAttribute('data-value'));
+      renderCategoryChips();
+      renderBlockedRestaurants();
+      renderList();
+      wireEvents();
+    }
 
-            const filteredRestaurants = Object.entries(restaurants)
-                .filter(([name, type]) => !blockTypes.includes(type) && !blockRestaurants.includes(name))
-                .filter(([name, type]) => !restaurantType || type === restaurantType);
+    function wireEvents() {
+      els.categorySelect.addEventListener("change", () => {
+        state.selectedCategory = els.categorySelect.value;
+        saveState();
+        renderList();
+      });
 
-            if (filteredRestaurants.length === 0) {
-                document.getElementById('result').innerText = 'No restaurants available or they are blocked.';
-                return;
-            }
+      els.citySelect.addEventListener("change", () => {
+        state.selectedCity = els.citySelect.value;
+        saveState();
+        renderList();
+      });
 
-            const [chosenRestaurant, chosenType] = filteredRestaurants[Math.floor(Math.random() * filteredRestaurants.length)];
-            document.getElementById('result').innerText = `You should go to: ${chosenRestaurant} (${chosenType})`;
-        }
-    </script>
+      els.searchInput.addEventListener("input", () => {
+        state.searchText = els.searchInput.value;
+        saveState();
+        renderList();
+      });
+
+      els.rollButton.addEventListener("click", pickRestaurant);
+      els.randomCategoryButton.addEventListener("click", pickRandomCategory);
+      els.clearFiltersButton.addEventListener("click", clearFilters);
+      els.addBlockedRestaurantButton.addEventListener("click", addBlockedRestaurant);
+      els.resetBlocksButton.addEventListener("click", resetBlocks);
+      els.blockRestaurantInput.addEventListener("keydown", event => {
+        if (event.key === "Enter") { event.preventDefault(); addBlockedRestaurant(); }
+      });
+    }
+
+    function renderCategoryChips() {
+      els.categoryChips.innerHTML = "";
+      getCategories().forEach(category => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.textContent = titleCaseCategory(category);
+        chip.setAttribute("aria-pressed", state.blockedCategories.has(category) ? "true" : "false");
+        chip.addEventListener("click", () => {
+          if (state.blockedCategories.has(category)) state.blockedCategories.delete(category);
+          else state.blockedCategories.add(category);
+          saveState();
+          renderCategoryChips();
+          renderList();
+        });
+        els.categoryChips.appendChild(chip);
+      });
+    }
+
+    function renderBlockedRestaurants() {
+      els.blockedRestaurantTags.innerHTML = "";
+      const blocked = [...state.blockedRestaurants].sort((a, b) => a.localeCompare(b));
+      if (!blocked.length) {
+        const empty = document.createElement("span");
+        empty.className = "empty-tags";
+        empty.textContent = "Nothing blocked yet.";
+        els.blockedRestaurantTags.appendChild(empty);
+        return;
+      }
+      blocked.forEach(name => {
+        const tag = document.createElement("button");
+        tag.type = "button";
+        tag.className = "tag";
+        tag.textContent = `${name} ×`;
+        tag.title = "Remove block";
+        tag.addEventListener("click", () => {
+          state.blockedRestaurants.delete(name);
+          saveState();
+          renderBlockedRestaurants();
+          renderList();
+        });
+        els.blockedRestaurantTags.appendChild(tag);
+      });
+    }
+
+    function renderList() {
+      const eligible = getEligibleRestaurants();
+      els.visibleCount.textContent = eligible.length;
+      els.listCount.textContent = `${eligible.length} shown`;
+      els.restaurantList.innerHTML = "";
+
+      if (!eligible.length) {
+        const empty = document.createElement("div");
+        empty.className = "mini-card";
+        empty.innerHTML = "<strong>No matches</strong><span>Try clearing a filter or removing blocks.</span>";
+        els.restaurantList.appendChild(empty);
+        return;
+      }
+
+      eligible.slice(0, 120).forEach(restaurant => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "mini-card";
+        const locationText = restaurant.locations.length === 1 ? "1 location" : `${restaurant.locations.length} locations`;
+        card.innerHTML = `<strong></strong><span></span>`;
+        card.querySelector("strong").textContent = restaurant.name;
+        card.querySelector("span").textContent = `${titleCaseCategory(restaurant.category)} · ${locationText}`;
+        card.addEventListener("click", () => showRestaurant(restaurant, true));
+        els.restaurantList.appendChild(card);
+      });
+
+      if (eligible.length > 120) {
+        const note = document.createElement("div");
+        note.className = "mini-card";
+        note.innerHTML = `<strong>Showing first 120</strong><span>Use search or filters to narrow the full list.</span>`;
+        els.restaurantList.appendChild(note);
+      }
+    }
+
+    function pickRestaurant() {
+      const eligible = getEligibleRestaurants();
+      if (!eligible.length) {
+        els.resultCard.innerHTML = `<div class="placeholder"><div class="dice">🚫</div><h2>No restaurants available.</h2><p>Clear a filter or remove a blocked category/restaurant, then roll again.</p></div>`;
+        return;
+      }
+      const chosen = eligible[Math.floor(Math.random() * eligible.length)];
+      showRestaurant(chosen, true);
+    }
+
+    function showRestaurant(restaurant, addToHistory) {
+      currentChoice = restaurant;
+      if (addToHistory) {
+        history = [restaurant, ...history.filter(item => item.name !== restaurant.name)].slice(0, 7);
+        renderHistory();
+      }
+
+      const hasDescription = restaurant.description && restaurant.description.trim().length;
+      const locationCards = restaurant.locations.length
+        ? restaurant.locations.map((loc, index) => locationHtml(loc, index)).join("")
+        : `<div class="location"><strong>No location listed</strong><p>The guide did not include an address for this entry.</p></div>`;
+
+      els.resultCard.innerHTML = `
+        <div class="result-top">
+          <span class="category-pill">${escapeHtml(titleCaseCategory(restaurant.category))}</span>
+          <span class="category-pill" style="background:var(--accent-soft);color:var(--accent-dark);">${restaurant.locations.length || 0} loc.</span>
+        </div>
+        <h2 class="result-title">${escapeHtml(restaurant.name)}</h2>
+        <p class="description">${hasDescription ? escapeHtml(restaurant.description) : "No description was included in the CSV for this restaurant."}</p>
+        <div class="toolbar">
+          <button class="mini-button" type="button" id="rollAgainButton">Roll again</button>
+          <button class="mini-button" type="button" id="blockCurrentButton">Block this place</button>
+        </div>
+        <h3 class="section-title">Locations</h3>
+        <div class="locations">${locationCards}</div>
+      `;
+
+      document.getElementById("rollAgainButton").addEventListener("click", pickRestaurant);
+      document.getElementById("blockCurrentButton").addEventListener("click", () => {
+        state.blockedRestaurants.add(restaurant.name);
+        saveState();
+        renderBlockedRestaurants();
+        renderList();
+        pickRestaurant();
+      });
+    }
+
+    function locationHtml(loc, index) {
+      const address = loc.address || "Address not listed";
+      const phone = loc.phone || "";
+      const phoneHref = phone ? `tel:${phone.replace(/[^0-9+]/g, "")}` : "";
+      const mapHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+      return `
+        <article class="location">
+          <strong>Location ${index + 1}</strong>
+          <p>${escapeHtml(address)}</p>
+          ${phone ? `<p>${escapeHtml(phone)}</p>` : ""}
+          <div class="links">
+            <a href="${mapHref}" target="_blank" rel="noopener">Map</a>
+            ${phone ? `<a href="${phoneHref}">Call</a>` : ""}
+          </div>
+        </article>
+      `;
+    }
+
+    function pickRandomCategory() {
+      const categories = getCategories().filter(category => !state.blockedCategories.has(category));
+      if (!categories.length) return;
+      const category = categories[Math.floor(Math.random() * categories.length)];
+      state.selectedCategory = category;
+      els.categorySelect.value = category;
+      saveState();
+      renderList();
+      pickRestaurant();
+    }
+
+    function addBlockedRestaurant() {
+      const typed = els.blockRestaurantInput.value.trim();
+      if (!typed) return;
+      const match = RESTAURANTS.find(r => normalize(r.name) === normalize(typed))
+        || RESTAURANTS.find(r => normalize(r.name).includes(normalize(typed)));
+      if (!match) return;
+      state.blockedRestaurants.add(match.name);
+      els.blockRestaurantInput.value = "";
+      saveState();
+      renderBlockedRestaurants();
+      renderList();
+    }
+
+    function resetBlocks() {
+      state.blockedCategories.clear();
+      state.blockedRestaurants.clear();
+      saveState();
+      renderCategoryChips();
+      renderBlockedRestaurants();
+      renderList();
+    }
+
+    function clearFilters() {
+      state.selectedCategory = "";
+      state.selectedCity = "";
+      state.searchText = "";
+      els.categorySelect.value = "";
+      els.citySelect.value = "";
+      els.searchInput.value = "";
+      saveState();
+      renderList();
+    }
+
+    function renderHistory() {
+      els.historyPanel.classList.toggle("hidden", history.length === 0);
+      els.historyList.innerHTML = "";
+      history.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.name} (${titleCaseCategory(item.category)})`;
+        els.historyList.appendChild(li);
+      });
+    }
+
+    function escapeHtml(value) {
+      return (value || "").toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    init();
+  </script>
 </body>
 </html>
